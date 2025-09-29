@@ -2,8 +2,8 @@
   # Directorio base del proyecto
   base = "webapp-BISESAL/"
   
-  # Comando para construir el frontend
-  command = "npm ci && npm run build"
+  # Comando para construir el frontend y backend
+  command = "chmod +x ../build.sh && ../build.sh"
   
   # Directorio donde se genera el build
   publish = "dist"
@@ -12,6 +12,24 @@
   # Variables de entorno para el build
   NODE_VERSION = "20"
   NPM_FLAGS = "--prefer-offline --no-audit --progress=false"
+  # Usar Netlify Functions para el backend
+  VITE_API_URL = "/.netlify/functions/server"
+
+# Configuración de funciones
+[functions]
+  directory = "netlify/functions"
+  
+# Variables de entorno para el backend (MySQL)
+[context.production.environment]
+  MYSQL_HOST = "ls-ca7d5c9e53daa7f886cbe09310c131eba697bc0c.cn0s0keyw5qy.us-east-2.rds.amazonaws.com"
+  MYSQL_PORT = "3306"
+  MYSQL_USER = "dbmasteruser"
+  MYSQL_PASSWORD = "aQ3nLHM(jk63{#R{H-*]7ZkKgO}B_3~z"
+  MYSQL_DATABASE = "sesal_historico"
+  MYSQL_CONNECTION_LIMIT = "5"
+  MYSQL_QUEUE_LIMIT = "25"
+  MYSQL_CONNECT_TIMEOUT = "10000"
+  MYSQL_CHARSET = "utf8mb4"
 
 # Configuración para SPA (Single Page Application)
 [[redirects]]
