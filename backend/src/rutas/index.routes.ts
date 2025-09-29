@@ -6,8 +6,8 @@ import configuracionRutas from "./configuracion.rutas";
 
 const enrutador = Router();
 
-enrutador.use("/tablero", tableroRutas);
-enrutador.use("/reportes", reportesRutas);
+enrutador.use("/api/tablero", tableroRutas);
+enrutador.use("/api/reportes", reportesRutas);
 enrutador.use("/api", configuracionRutas);
 
 export default enrutador;

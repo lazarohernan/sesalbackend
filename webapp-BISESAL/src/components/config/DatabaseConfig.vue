@@ -71,7 +71,8 @@ const testConnection = async () => {
   testResult.value = null
   
   try {
-    const apiBase = import.meta.env.VITE_API_URL || window.location.origin
+    // Usar la misma lógica de apiBase que App.vue
+    const apiBase = import.meta.env.VITE_API_URL === '' ? '' : (import.meta.env.VITE_API_URL || window.location.origin)
     const response = await fetch(`${apiBase}/api/test-db-connection`, {
       method: 'POST',
       headers: {
