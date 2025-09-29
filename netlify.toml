@@ -3,14 +3,15 @@
   base = "webapp-BISESAL/"
   
   # Comando para construir el frontend
-  command = "npm run build"
+  command = "npm ci && npm run build"
   
   # Directorio donde se genera el build
   publish = "dist"
 
 [build.environment]
   # Variables de entorno para el build
-  NODE_VERSION = "18"
+  NODE_VERSION = "20"
+  NPM_FLAGS = "--prefer-offline --no-audit --progress=false"
 
 # Configuración para SPA (Single Page Application)
 [[redirects]]
