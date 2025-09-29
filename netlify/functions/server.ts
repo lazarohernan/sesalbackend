@@ -1,13 +1,11 @@
 // Adaptador para convertir Express app a Netlify Function
 import { Handler } from '@netlify/functions'
-import express from 'express'
-import { config } from 'dotenv'
 
 // Cargar variables de entorno
-config()
+require('dotenv').config()
 
 // Importar la aplicación Express del backend
-import aplicacion from '../../backend/dist/aplicacion.js'
+const aplicacion = require('../../backend/dist/aplicacion.js')
 
 // Crear handler para Netlify Functions
 export const handler: Handler = async (event, context) => {

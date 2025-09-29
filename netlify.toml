@@ -31,7 +31,12 @@
 # MYSQL_CONNECT_TIMEOUT = 10000
 # MYSQL_CHARSET = utf8mb4
 
-# Redirecciones para API
+# Redirecciones para API - usar proxy
+[[redirects]]
+  from = "/api/test-db-connection"
+  to = "/.netlify/functions/test"
+  status = 200
+
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/server/api/:splat"
