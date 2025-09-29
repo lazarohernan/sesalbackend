@@ -1,0 +1,40 @@
+[build]
+  # Directorio base del proyecto
+  base = "webapp-BISESAL/"
+  
+  # Comando para construir el frontend
+  command = "npm run build"
+  
+  # Directorio donde se genera el build
+  publish = "dist"
+
+[build.environment]
+  # Variables de entorno para el build
+  NODE_VERSION = "18"
+
+# Configuración para SPA (Single Page Application)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Configuración de headers para seguridad
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+# Configuración específica para archivos estáticos
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Configuración para archivos de configuración
+[[headers]]
+  for = "/*.env*"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"

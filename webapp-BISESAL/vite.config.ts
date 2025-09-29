@@ -44,6 +44,12 @@ export default defineConfig(({ mode }) => {
         }
       },
       chunkSizeWarningLimit: 1024
+    },
+    // Configuración para Netlify
+    base: mode === 'production' ? '/' : '/',
+    preview: {
+      port: 4173,
+      strictPort: true
     }
   }
 })
