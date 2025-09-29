@@ -20,16 +20,16 @@
   directory = "netlify/functions"
   
 # Variables de entorno para el backend (MySQL)
-[context.production.environment]
-  MYSQL_HOST = "ls-ca7d5c9e53daa7f886cbe09310c131eba697bc0c.cn0s0keyw5qy.us-east-2.rds.amazonaws.com"
-  MYSQL_PORT = "3306"
-  MYSQL_USER = "dbmasteruser"
-  MYSQL_PASSWORD = "aQ3nLHM(jk63{#R{H-*]7ZkKgO}B_3~z"
-  MYSQL_DATABASE = "sesal_historico"
-  MYSQL_CONNECTION_LIMIT = "5"
-  MYSQL_QUEUE_LIMIT = "25"
-  MYSQL_CONNECT_TIMEOUT = "10000"
-  MYSQL_CHARSET = "utf8mb4"
+# ⚠️  CONFIGURAR EN EL PANEL DE NETLIFY (Site settings > Environment variables)
+# MYSQL_HOST = tu-host-de-lightsail
+# MYSQL_PORT = 3306
+# MYSQL_USER = tu-usuario
+# MYSQL_PASSWORD = tu-contraseña
+# MYSQL_DATABASE = sesal_historico
+# MYSQL_CONNECTION_LIMIT = 5
+# MYSQL_QUEUE_LIMIT = 25
+# MYSQL_CONNECT_TIMEOUT = 10000
+# MYSQL_CHARSET = utf8mb4
 
 # Configuración para SPA (Single Page Application)
 [[redirects]]
