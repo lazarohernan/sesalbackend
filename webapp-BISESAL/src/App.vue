@@ -40,8 +40,16 @@ const normalizarBaseUrl = (valor?: string) => {
 const apiBase = computed(() => {
   const desdeWidget = normalizarBaseUrl(widgetConfig?.apiUrl)
   if (desdeWidget) return desdeWidget
-  const desdeEnv = normalizarBaseUrl(import.meta.env.VITE_API_URL)
-  if (desdeEnv) return desdeEnv
+  
+  // Si VITE_API_URL está vacío, usar URL relativa para Netlify
+  const desdeEnv = import.meta.env.VITE_API_URL
+  if (desdeEnv === '') {
+    return '' // URL relativa - usar mismo dominio
+  }
+  
+  const desdeEnvNormalizado = normalizarBaseUrl(desdeEnv)
+  if (desdeEnvNormalizado) return desdeEnvNormalizado
+  
   try {
     return window.location.origin
   } catch (_) {

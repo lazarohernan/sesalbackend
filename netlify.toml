@@ -12,8 +12,8 @@
   # Variables de entorno para el build
   NODE_VERSION = "20"
   NPM_FLAGS = "--prefer-offline --no-audit --progress=false"
-  # Usar Netlify Functions para el backend
-  VITE_API_URL = "/.netlify/functions/server"
+  # Usar Netlify Functions para el backend (URL relativa)
+  VITE_API_URL = ""
 
 # Configuración de funciones
 [functions]
@@ -30,6 +30,12 @@
 # MYSQL_QUEUE_LIMIT = 25
 # MYSQL_CONNECT_TIMEOUT = 10000
 # MYSQL_CHARSET = utf8mb4
+
+# Redirecciones para API
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/server/api/:splat"
+  status = 200
 
 # Configuración para SPA (Single Page Application)
 [[redirects]]
