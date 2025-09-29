@@ -34,13 +34,15 @@
 # Redirecciones para API - usar proxy
 [[redirects]]
   from = "/api/test-db-connection"
-  to = "/.netlify/functions/test"
+  to = "/.netlify/functions/test-db-connection"
   status = 200
+  force = true
 
 [[redirects]]
   from = "/api/*"
   to = "/.netlify/functions/server/api/:splat"
   status = 200
+  force = true
 
 # Configuración para SPA (Single Page Application)
 [[redirects]]
