@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prueba Simple del Widget BI SESAL</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            text-align: center;
+            color: #2563eb;
+            margin-bottom: 2rem;
+        }
+        .test-section {
+            background: white;
+            border-radius: 12px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .widget-wrapper {
+            border: 2px solid #d1d5db;
+            border-radius: 12px;
+            padding: 1rem;
+            background: white;
+            min-height: 400px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 Prueba Simple del Widget BI SESAL</h1>
+
+        <div class="test-section">
+            <h2>Widget Básico</h2>
+            <p>Este es un widget simple que debería mostrar tarjetas, mapa y panel de exportación.</p>
+            <div class="widget-wrapper">
+                <bi-sesal-completo anio="2024" height="600px" width="100%"></bi-sesal-completo>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>Widget con Tema Oscuro</h2>
+            <div class="widget-wrapper">
+                <bi-sesal-completo anio="2024" theme="dark" height="500px" width="100%"></bi-sesal-completo>
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h2>Widget Filtrado por Departamento</h2>
+            <div class="widget-wrapper">
+                <bi-sesal-completo anio="2024" departamento="Cortés" height="500px" width="100%"></bi-sesal-completo>
+            </div>
+        </div>
+    </div>
+
+    <!-- Incluir Vue.js -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+
+    <!-- Incluir el widget -->
+    <script src="./dist/bi-sesal-widget.umd.cjs"></script>
+    <link rel="stylesheet" href="./dist/bi-sesal-widget.css">
+
+    <script>
+        // Esperar a que todo se cargue
+        window.addEventListener('load', function() {
+            console.log('Página cargada. Widget debería aparecer.');
+        });
+
+        // Escuchar errores
+        window.addEventListener('error', function(e) {
+            console.error('Error en la página:', e.error);
+        });
+    </script>
+</body>
+</html>
+
