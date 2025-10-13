@@ -33,6 +33,15 @@ export default defineConfig(({ mode }) => {
   // Configuración normal de la app
   return {
     plugins: [vue()],
+    server: {
+      port: 3001,
+      proxy: {
+        '/api': {
+          target: 'http://localhost:4000',
+          changeOrigin: true
+        }
+      }
+    },
     build: {
       rollupOptions: {
         output: {

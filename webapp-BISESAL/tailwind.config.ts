@@ -1,4 +1,5 @@
 import type { Config } from 'tailwindcss'
+import lineClamp from '@tailwindcss/line-clamp'
 
 const config: Config = {
   darkMode: 'class',
@@ -7,23 +8,28 @@ const config: Config = {
     extend: {
       colors: {
         brand: {
-          base: '#0067c6',
-          dark: '#124b97',
-          light: '#e5f1ff'
+          base: '#f96000',    // Naranja principal para elementos gráficos y números
+          dark: '#d14f00',    // Naranja más oscuro
+          light: '#fff2e8'    // Naranja muy claro para fondos
+        },
+        accent: {
+          base: '#4cc7d7',    // Azul para filtros y elementos interactivos
+          dark: '#2a9aad',    // Azul más oscuro
+          light: '#e6f7fa'    // Azul muy claro para fondos
         },
         surface: {
           DEFAULT: '#ffffff',
           dark: '#0f192d'
         },
         border: {
-          DEFAULT: '#d6e4f5',
-          dark: '#23324a'
+          DEFAULT: '#e0e0e0',    // Gris claro para bordes
+          dark: '#374151'       // Gris medio para bordes en modo oscuro
         },
         text: {
-          primary: '#12203a',
-          secondary: '#4a5b75',
-          muted: '#9db2d4',
-          inverted: '#e4edfb'
+          primary: '#1a1a1a',    // Gris oscuro para textos principales (mejor contraste)
+          secondary: '#666666',  // Gris medio para textos secundarios
+          muted: '#999999',     // Gris claro para textos muted
+          inverted: '#ffffff'   // Blanco para textos invertidos
         },
         overlay: {
           light: 'rgba(255, 255, 255, 0.85)',
@@ -31,9 +37,9 @@ const config: Config = {
         }
       },
       boxShadow: {
-        card: '0 12px 32px rgba(11, 55, 117, 0.12)',
-        panel: '0 10px 24px rgba(11, 55, 117, 0.08)',
-        shell: '0 8px 24px rgba(11, 55, 117, 0.08)'
+        card: '0 12px 32px rgba(249, 96, 0, 0.12)',    // Sombra con tinte naranja
+        panel: '0 10px 24px rgba(249, 96, 0, 0.08)',   // Sombra con tinte naranja
+        shell: '0 8px 24px rgba(249, 96, 0, 0.08)'     // Sombra con tinte naranja
       },
       borderRadius: {
         card: '18px'
@@ -50,7 +56,7 @@ const config: Config = {
       }
     }
   },
-  plugins: []
+  plugins: [lineClamp]
 }
 
 export default config

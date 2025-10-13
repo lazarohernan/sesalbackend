@@ -1,0 +1,55 @@
+codigo,descripcion
+01,Menores de 1 Mes (primera vez)
+02,Menores de 1 Mes (subsiguiente)
+03,1 Mes a 1 Año (primera vez)
+04,1 Mes a 1 AñO (subsiguiente)
+05,1 a 4 Años (primera vez)
+061,a 4 Años (subsiguiente)
+075,a 9 Años (primera vez)
+085,a 9 Años (subsiguiente)
+09,10 a 14 Años (primera vez)
+10,10 a 14 Años (subsiguiente)
+11,15 a 19 Años (primera vez)
+12,15 a 19 Años (subsiguiente)
+13,20 a 49 Años (primera vez)
+14,20 a 49 Años (subsiguiente)
+15,50 a 59 Años (primera vez)
+16,50 a 59 Años (subsiguiente)
+17,60 y Mas Años (primera vez)
+18,60 y Mas Años (subsiguiente)
+19,Total Pacientes Atendidos
+20,Atenciones de Mujeres
+21,Atenciones de Hombres
+22,Consultas Espontaneas
+23,Consultas Referidas
+24,Detección de Sintomáticos Respiratorios
+25,Detección de Cáncer Cervico Uterino
+26,Embarazadas (nuevas)
+27,Embarazadas (control)
+28,Controles Puerperales
+29,Anticonceptivo Oral 1 Ciclo
+30,Anticonceptivo Oral 3 Ciclo
+31,Anticonceptivo Oral 6 Ciclo
+32,Condones 10 Unidades
+33,Condones 30 Unidades
+34,Depo Provera Aplicadas
+35,DIU insertados
+36,Método de Días Fijos (Collar)
+37,Otras Actividades de Planificación Familiar
+38,Menores de 5 Años con Diarreas (nuevos)
+39,Menores de 5 Años con Diarreas (control)
+40,Menores de 5 Años con Deshidratación
+41,Menores de 5 Años con Neumonía (nuevos)
+42,Menores de 5 Años con Neumonía (control)
+43,Menores de 5 Años con Sindrome Anémico
+44,Total de Niños Menores de 5 Años Atendidos
+45,Menores de 5 Años con Crecimiento Adecuado
+46,Menores de 5 Años con Crecimiento Inadecuado
+47,Menores de 5 Años con Bajo Percentil 3
+48,Menores de 5 Años con Daño Nutricional Severo
+49,Menores de 5 Años con Discapacidad (nuevos)
+50,Menores de 5 Años con Probable Alteración del Desarrollo
+51,Atencion prenatal nueva en las primeras 12 SG
+51,Partos Atendidos
+52,Atencion puerperal nueva en los primeros 10 dias
+53,Otras Actividades Planificación Familiar

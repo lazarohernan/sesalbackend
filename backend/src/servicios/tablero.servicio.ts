@@ -1,7 +1,7 @@
 import type { RowDataPacket } from "mysql2";
 
 import { entorno } from "../configuracion";
-import { pool } from "../base_datos/pool";
+import { obtenerPoolActual } from "../base_datos/pool";
 
 export interface ResumenTablero {
   totalRegiones: number;
@@ -20,7 +20,8 @@ export interface DepartamentoDato {
   totalUnidades: number;
 }
 
-export const obtenerResumenTablero = async (): Promise<ResumenTablero> => {
+export const obtenerResumenTablero = async (anio?: number): Promise<ResumenTablero> => {
+  const pool = obtenerPoolActual();
   const [catalogos] = await pool.query<RowDataPacket[]>(
     `SELECT
         (SELECT COUNT(*) FROM BAS_BDR_REGIONES) AS totalRegiones,
@@ -28,23 +29,43 @@ export const obtenerResumenTablero = async (): Promise<ResumenTablero> => {
         (SELECT COUNT(*) FROM BAS_BDR_US) AS totalUnidadesServicio`
   );
 
-  const [detalle] = await pool.query<RowDataPacket[]>(
-    `SELECT COALESCE(SUM(TABLE_ROWS), 0) AS total
-     FROM information_schema.TABLES
-     WHERE TABLE_SCHEMA = ?
-       AND TABLE_NAME LIKE 'AT2_BDT_MENSUAL_DETALLE_%'`,
-    [entorno.baseDatos.nombre]
-  );
+  let totalRegistrosDetalle = 0;
+
+  if (anio) {
+    // Si se especifica un año, contar registros reales de ese año
+    const tablaDetalle = `AT2_BDT_MENSUAL_DETALLE_${anio}`;
+    try {
+      const [detalle] = await pool.query<RowDataPacket[]>(
+        `SELECT COUNT(*) AS total FROM ${tablaDetalle} WHERE N_ANIO = ?`,
+        [anio]
+      );
+      totalRegistrosDetalle = Number(detalle?.[0]?.total ?? 0);
+    } catch (error) {
+      // Si la tabla no existe para ese año, usar 0
+      totalRegistrosDetalle = 0;
+    }
+  } else {
+    const [tablas] = await pool.query<RowDataPacket[]>(
+      `SELECT
+         SUM(TABLE_ROWS) AS total
+       FROM information_schema.TABLES
+       WHERE TABLE_SCHEMA = ?
+         AND TABLE_NAME LIKE 'AT2_BDT_MENSUAL_DETALLE_%'`,
+      [entorno.baseDatos.nombre]
+    );
+    totalRegistrosDetalle = Number(tablas?.[0]?.total ?? 0);
+  }
 
   return {
     totalRegiones: Number(catalogos?.[0]?.totalRegiones ?? 0),
     totalMunicipios: Number(catalogos?.[0]?.totalMunicipios ?? 0),
     totalUnidadesServicio: Number(catalogos?.[0]?.totalUnidadesServicio ?? 0),
-    totalRegistrosDetalle: Number(detalle?.[0]?.total ?? 0)
+    totalRegistrosDetalle
   };
 };
 
 export const obtenerDatosMapaHonduras = async (): Promise<DepartamentoDato[]> => {
+  const pool = obtenerPoolActual();
   const [filas] = await pool.query<RowDataPacket[]>(
     `SELECT
         departamento_id AS departamentoId,
