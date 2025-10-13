@@ -6,7 +6,7 @@
 
 [build.environment]
   # Variables de entorno para el build
-  NODE_VERSION = "18"
+  NODE_VERSION = "20"
 
 [[redirects]]
   # Redireccionar todas las rutas al index.html para SPA
