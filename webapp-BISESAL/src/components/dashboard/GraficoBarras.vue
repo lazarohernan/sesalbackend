@@ -38,7 +38,7 @@ const calcularAlturaBarra = (valor: number) => {
 }
 
 // Calcular el color de la barra (todas naranjas)
-const calcularColorBarra = (index: number) => {
+const calcularColorBarra = () => {
   return 'brand-base' // Todas las barras en naranja
 }
 
@@ -82,7 +82,7 @@ const calcularOpacidadBarra = (index: number) => {
           <div class="barra-wrapper">
             <div
               class="barra"
-              :class="`bg-${calcularColorBarra(index)}`"
+              :class="`bg-${calcularColorBarra()}`"
               :style="{
                 height: `${calcularAlturaBarra(dato.valor)}%`,
                 opacity: calcularOpacidadBarra(index)
