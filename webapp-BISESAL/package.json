@@ -8,7 +8,8 @@
     "build": "vue-tsc -b && vite build",
     "build:widget": "vue-tsc -b && vite build --mode widget",
     "preview": "vite preview",
-    "demo": "vite --host --port 3000 demo.html"
+    "demo": "vite --host --port 3000 demo.html",
+    "deploy:netlify": "npm run build && netlify deploy --prod --dir=dist"
   },
   "dependencies": {
     "@iconify/vue": "^5.0.0",

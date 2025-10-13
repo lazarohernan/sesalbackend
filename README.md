@@ -89,6 +89,38 @@ cd webapp-BISESAL
 npm run build
 ```
 
+## 🚀 Despliegue en Netlify
+
+### Opción 1: Despliegue Automático (Recomendado)
+1. **Conectar repositorio**: Ve a [Netlify](https://app.netlify.com) y conecta tu repo de GitHub
+2. **Configuración de build**:
+   - **Branch**: `main`
+   - **Build command**: `npm run build`
+   - **Publish directory**: `webapp-BISESAL/dist`
+3. **Variables de entorno** (opcional):
+   - `VITE_API_URL`: URL de tu backend en producción
+
+### Opción 2: Despliegue Manual
+```bash
+# Desde la carpeta del frontend
+cd webapp-BISESAL
+
+# Build del proyecto
+npm run build
+
+# Desplegar en Netlify (requiere Netlify CLI)
+npm install -g netlify-cli
+netlify login
+netlify deploy --prod --dir=dist
+```
+
+### Configuración de Netlify
+El archivo `webapp-BISESAL/netlify.toml` ya está configurado con:
+- ✅ Redirecciones SPA automáticas
+- ✅ Headers de cache optimizados
+- ✅ Headers de seguridad
+- ✅ Configuración de build automática
+
 ## 📁 Estructura del Proyecto
 
 ```
