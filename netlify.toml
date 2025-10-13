@@ -36,3 +36,15 @@
     X-XSS-Protection = "1; mode=block"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
+
+# Headers para archivos estáticos (assets)
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# Headers para archivos de configuración
+[[headers]]
+  for = "/.env*"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
