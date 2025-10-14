@@ -36,6 +36,7 @@
     X-XSS-Protection = "1; mode=block"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
+    Content-Security-Policy = "upgrade-insecure-requests; default-src 'self' http://18.191.147.182:4000 https://sesal.netlify.app; connect-src 'self' http://18.191.147.182:4000; script-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' data:;"
 
 # Headers para archivos estáticos (assets)
 [[headers]]
