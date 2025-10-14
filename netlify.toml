@@ -16,9 +16,17 @@
   to = "http://18.191.147.182:4000/api/:splat"
   status = 200
   force = true
+  headers = {X-From = "Netlify"}
 
 [[redirects]]
-  # Redireccionar todas las rutas al index.html para SPA
+  # Proxy para health check
+  from = "/salud"
+  to = "http://18.191.147.182:4000/salud"
+  status = 200
+  force = true
+
+[[redirects]]
+  # Redireccionar todas las rutas al index.html para SPA (debe ser el último)
   from = "/*"
   to = "/index.html"
   status = 200
