@@ -11,6 +11,13 @@
   NODE_VERSION = "20"
 
 [[redirects]]
+  # Proxy para el backend API (permite HTTP desde HTTPS)
+  from = "/api/*"
+  to = "http://18.191.147.182:4000/api/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
   # Redireccionar todas las rutas al index.html para SPA
   from = "/*"
   to = "/index.html"
