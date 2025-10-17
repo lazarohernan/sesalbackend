@@ -132,16 +132,16 @@ const JOIN_DEFINITIONS: Record<JoinKey, string> = {
 };
 
 const DIMENSIONES: Record<string, DimensionDefinition> = {
-  // ANIO: {
-  //   id: "ANIO",
-  //   label: "Año",
-  //   alias: "anio",
-  //   type: "number",
-  //   select: "det.N_ANIO",
-  //   groupBy: "det.N_ANIO",
-  //   valueExpr: "det.N_ANIO",
-  //   orderBy: "det.N_ANIO"
-  // },
+  ANIO: {
+    id: "ANIO",
+    label: "Año",
+    alias: "anio",
+    type: "number",
+    select: "det.N_ANIO",
+    groupBy: "det.N_ANIO",
+    valueExpr: "det.N_ANIO",
+    orderBy: "det.N_ANIO"
+  },
   MES: {
     id: "MES",
     label: "Mes",
@@ -772,30 +772,90 @@ const transformarDatosPivot = (
   };
 };
 
-export const ejecutarConsultaPivot = async (
-  payload: PivotQueryPayload
-): Promise<PivotQueryResult> => {
+async function ejecutarConsultaAgregada(payload: PivotQueryPayload): Promise<PivotQueryResult | null> {
+  // Solo usar agregación si:
+  // 1. Rows = ['CONCEPTO']
+  // 2. Values = [{ field: 'TOTAL', aggregation: 'SUM' }]
+  // 3. Filters solo contiene ANIO (NO región, NO otros filtros)
+  const filas = payload.rows ?? [];
+  const valores = payload.values ?? [];
+  const filtros = payload.filters ?? [];
+  
+  // Verificar que NO haya filtros de región/departamento
+  const tieneFiltroRegion = filtros.some(f => 
+    f.field === 'REGION' || 
+    f.field === 'DEPARTAMENTO' || 
+    f.field === 'MUNICIPIO' ||
+    f.field === 'US'
+  );
+  
+  const usaAgregacion = 
+    filas.length === 1 && filas[0] === 'CONCEPTO' &&
+    valores.length === 1 && valores[0].field === 'TOTAL' && valores[0].aggregation === 'SUM' &&
+    !tieneFiltroRegion && // NO debe tener filtros geográficos
+    filtros.every(f => f.field === 'ANIO' || f.field === 'CONCEPTO'); // Solo ANIO o CONCEPTO
+  
+  if (!usaAgregacion) return null;
+  
+  // Construir consulta optimizada
+  const anios = filtros.find(f => f.field === 'ANIO')?.values ?? [];
+  const limite = payload.limit ?? 20;
+  
+  let whereClause = 'WHERE C_REGION IS NULL';
+  const params: any[] = [];
+  
+  if (anios.length > 0) {
+    whereClause += ` AND N_ANIO IN (${anios.map(() => '?').join(',')})`;
+    params.push(...anios);
+  }
+  
+  const query = `
+    SELECT 
+      COALESCE(cat.descripcion, agg.C_CONCEPTO) AS CONCEPTO,
+      SUM(agg.TOTAL_ATENCIONES) AS \`Total de Atenciones\`
+    FROM AGG_INDICADORES_CONCEPTO agg
+    LEFT JOIN cat_conceptos cat ON cat.codigo COLLATE utf8mb4_unicode_ci = agg.C_CONCEPTO COLLATE utf8mb4_unicode_ci
+    ${whereClause.replace('C_REGION', 'agg.C_REGION').replace('N_ANIO', 'agg.N_ANIO')}
+    GROUP BY cat.descripcion, agg.C_CONCEPTO
+    ORDER BY SUM(agg.TOTAL_ATENCIONES) DESC
+    LIMIT ?
+  `;
+  
+  params.push(limite);
+  
   const pool = tomarPool();
+  const [rows] = await pool.query<RowDataPacket[]>(query, params);
+  const datos = rows as any[];
+  
+  // Calcular total general
+  const totalGeneral = datos.reduce((sum: number, row: any) => sum + (row['Total de Atenciones'] || 0), 0);
+  
+  return {
+    datos,
+    metadata: {
+      dimensionesSeleccionadas: ['CONCEPTO'],
+      dimensionesFilas: ['CONCEPTO'],
+      dimensionesColumnas: [],
+      medidasSeleccionadas: ['TOTAL']
+    },
+    aniosConsultados: anios as number[],
+    totalGeneral: { 'Total de Atenciones': totalGeneral }
+  };
+}
 
-  const valoresSolicitud: PivotValueRequest[] = payload.values?.length ? payload.values : [];
-
+export async function ejecutarConsultaPivot(payload: PivotQueryPayload): Promise<PivotQueryResult> {
+  // Intentar usar tabla de agregación optimizada primero
+  const resultadoAgregado = await ejecutarConsultaAgregada(payload);
+  if (resultadoAgregado) {
+    return resultadoAgregado;
+  }
+  
+  // Si no se puede usar agregación, usar método normal
   const filas = payload.rows ?? [];
   const columnas = payload.columns ?? [];
-  const dimensionesSolicitadas = Array.from(new Set([...filas, ...columnas]));
-
-  if (!dimensionesSolicitadas.length && !valoresSolicitud.length) {
-    return {
-      datos: [],
-      metadata: {
-        dimensionesSeleccionadas: [],
-        dimensionesFilas: filas,
-        dimensionesColumnas: columnas,
-        medidasSeleccionadas: []
-      },
-      aniosConsultados: [],
-      totalGeneral: null
-    };
-  }
+  const valoresSolicitud = payload.values ?? [];
+  const limite = payload.limit ?? 1000;
+  const dimensionesSolicitadas = [...filas, ...columnas];
 
   const { selects, groupBy, joins, orderBy } = construirSelectDimensiones(dimensionesSolicitadas);
   if (!selects.length && !valoresSolicitud.length) {
@@ -871,6 +931,7 @@ export const ejecutarConsultaPivot = async (
     sql += `\nLIMIT ${limit}`;
   }
 
+  const pool = tomarPool();
   const [rows] = await pool.query<RowDataPacket[]>(sql, parametros);
   let totalGeneral: Record<string, unknown> | null = null;
 
@@ -894,10 +955,10 @@ export const ejecutarConsultaPivot = async (
   }
 
   // Transformar datos a estructura pivotada si hay dimensiones de columna
-  let datosTransformados: Array<Record<string, unknown>> = rows.map((row) => ({ ...row }));
+  let datosTransformados: Array<Record<string, unknown>> = rows.map((row: RowDataPacket) => ({ ...row }));
   
   // Primero, normalizar los datos para usar IDs de dimensiones y etiquetas de medidas
-  const datosNormalizados = rows.map((row) => {
+  const datosNormalizados = rows.map((row: RowDataPacket) => {
     const objeto: Record<string, unknown> = { ...row };
     
     // Reemplazar aliases con IDs de dimensiones
