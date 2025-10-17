@@ -174,34 +174,6 @@ const esperar = (ms: number) => new Promise<void>((resolve) => window.setTimeout
 const resultado = ref<{ resultado: PivotQueryResult; generadoEn: string } | null>(null);
 const filtrosInteractivos = reactive<Record<string, PivotFilterState>>({});
 
-const coloresDimension: Record<string, string> = {
-  number: "border-accent-base dark:border-accent-dark",
-  text: "border-accent-light dark:border-accent-base"
-};
-
-const coloresDimensionBadge: Record<string, string> = {
-  number: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
-  text: "bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400"
-};
-
-const coloresMedida: Record<string, string> = {
-  SUM: "border-blue-400 dark:border-blue-600",
-  COUNT: "border-blue-300 dark:border-blue-500",
-  AVG: "border-blue-200 dark:border-blue-400"
-};
-
-const coloresMedidaBadge: Record<string, string> = {
-  SUM: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
-  COUNT: "bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400",
-  AVG: "bg-blue-50 text-blue-600 dark:bg-blue-900/20 dark:text-blue-400"
-};
-
-const obtenerClaseContenedorDimension = (tipo: string) => coloresDimension[tipo] ?? "border-slate-200 bg-slate-50 dark:border-slate-600 dark:bg-slate-800";
-const obtenerClaseBadgeDimension = (tipo: string) => coloresDimensionBadge[tipo] ?? "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300";
-
-const obtenerClaseContenedorMedida = (agregacion: string) => coloresMedida[agregacion] ?? "border-slate-200 bg-slate-50 dark:border-slate-600 dark:bg-slate-800";
-const obtenerClaseBadgeMedida = (agregacion: string) => coloresMedidaBadge[agregacion] ?? "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300";
-
 const formatearAgregacion = (agregacion: string) => {
   switch (agregacion) {
     case "SUM":

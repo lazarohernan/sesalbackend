@@ -4,7 +4,6 @@ import { computed, defineAsyncComponent, inject, onBeforeUnmount, onMounted, ref
 import AppShell from './components/layout/AppShell.vue'
 import AppFooter from './components/layout/AppFooter.vue'
 import PivotBuilder from './components/reports/PivotBuilder.vue'
-import CompactSelect from './components/common/CompactSelect.vue'
 import CircularTabs from './components/common/CircularTabs.vue'
 import ImageBanner from './components/common/ImageBanner.vue'
 import { provideApiBase } from './composables/useApiBase'

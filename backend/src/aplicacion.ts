@@ -13,7 +13,7 @@ const app = express();
 
 app.set("trust proxy", true);
 
-app.use(helmet());
+app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
 // CORS configurable por entorno
 const allowedOrigins = (process.env.CORS_ORIGINS || "").split(",").map((s) => s.trim()).filter(Boolean);
 app.use(

@@ -1,0 +1,81 @@
+═══════════════════════════════════════════════════════════════════
+📍 INSTRUCCIONES PARA INSERTAR EL TEXTO EN EL DOCUMENTO PDF
+═══════════════════════════════════════════════════════════════════
+
+📌 UBICACIÓN EN EL DOCUMENTO:
+
+Sección: 4. FUNCIONALIDADES PRINCIPALES
+Después de: 4.4 Características Técnicas
+Antes de: 5. VALOR AGREGADO
+
+Nueva subsección a agregar: 4.5 Página de Inicio y Bienvenida
+
+═══════════════════════════════════════════════════════════════════
+📄 PASOS PARA EDITAR EL DOCUMENTO:
+═══════════════════════════════════════════════════════════════════
+
+OPCIÓN 1 - EDITAR EL ARCHIVO ORIGINAL Y REGENERAR PDF:
+-------------------------------------------------------
+
+1. Abre el archivo: informe_proyecto_sesal.txt
+   Ubicación: /Users/lazarohernan/Desktop/SISTEMA ATA/BI_SESAL/
+
+2. Busca la línea que dice:
+   "## 5. VALOR AGREGADO"
+
+3. JUSTO ANTES de esa línea, inserta el contenido completo de:
+   texto_pagina_inicio.txt
+
+4. Guarda el archivo informe_proyecto_sesal.txt
+
+5. Ejecuta en la terminal:
+   cd /Users/lazarohernan/Desktop/SISTEMA\ ATA/BI_SESAL
+   pandoc informe_proyecto_sesal.txt -f markdown -t html -o informe_proyecto_sesal.html --standalone --metadata title="Informe Ejecutivo - Dashboard BI SESAL"
+   html-pdf informe_proyecto_sesal.html informe_proyecto_sesal.pdf --format A4 --border "2cm"
+
+OPCIÓN 2 - EDITAR PDF DIRECTAMENTE (Más rápido):
+------------------------------------------------
+
+1. Abre el PDF con Adobe Acrobat Pro o Preview (Mac)
+2. Ve a la página donde termina la sección "4.4 Características Técnicas"
+3. Inserta una nueva página o edita el contenido
+4. Copia y pega el texto de: texto_pagina_inicio.txt
+5. Guarda los cambios
+
+═══════════════════════════════════════════════════════════════════
+📝 CONTENIDO A INSERTAR:
+═══════════════════════════════════════════════════════════════════
+
+El texto completo está en el archivo:
+→ texto_pagina_inicio.txt
+
+Puedes abrirlo con:
+  open texto_pagina_inicio.txt
+
+O copiarlo desde la terminal:
+  cat texto_pagina_inicio.txt | pbcopy
+
+═══════════════════════════════════════════════════════════════════
+🎨 FORMATO SUGERIDO PARA EL PDF:
+═══════════════════════════════════════════════════════════════════
+
+Título de sección (### 4.5):
+- Color: Gris (#666)
+- Tamaño: 12pt
+- Negrita: Sí
+
+Texto de párrafo:
+- Color: Negro (#333)
+- Tamaño: 11pt
+- Justificado
+
+Items de lista (bullets):
+- Color: Negro (#333)
+- Tamaño: 11pt
+- Sangría estándar
+
+Palabras en negrita (**texto**):
+- Color: Naranja (#f96000)
+- Peso: Bold
+
+═══════════════════════════════════════════════════════════════════

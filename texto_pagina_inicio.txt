@@ -1,0 +1,29 @@
+### 4.5 Página de Inicio y Bienvenida
+
+La plataforma cuenta con una **página de inicio** diseñada como punto de entrada y orientación para los usuarios, proporcionando una introducción clara y profesional al sistema BI SESAL.
+
+**Características de la Página de Inicio:**
+
+- **Banner Visual Institucional**: Presentación gráfica con los logos de SESAL y UNFPA, estableciendo la identidad institucional del proyecto
+- **Texto Introductorio**: Descripción general del propósito y alcance del sistema de Business Intelligence
+- **Navegación por Pestañas**: Sistema de pestañas circulares que permite transición fluida entre:
+  - **Inicio**: Página de bienvenida e información general
+  - **Dashboard**: Acceso directo a las visualizaciones y análisis de datos
+- **Tarjetas de Funcionalidades**: Presentación visual de las cuatro áreas principales del sistema:
+  - Resumen Institucional (métricas y estadísticas clave)
+  - Mapa Interactivo (visualización geográfica)
+  - Gráficos Dinámicos (análisis visual de datos)
+  - Tabla Dinámica (consultas personalizadas)
+- **Diseño Responsive**: Adaptación automática a diferentes dispositivos (móvil, tablet, desktop)
+- **Tema Consistente**: Colores institucionales que mantienen coherencia visual en toda la plataforma
+
+**Valor de la Página de Inicio:**
+
+La página de inicio cumple múltiples funciones estratégicas:
+- **Orientación del Usuario**: Proporciona contexto sobre las capacidades del sistema
+- **Facilita la Navegación**: Presenta claramente las opciones disponibles
+- **Imagen Profesional**: Establece credibilidad y seriedad institucional
+- **Reducción de Curva de Aprendizaje**: Los usuarios nuevos pueden comprender rápidamente el sistema
+- **Punto de Referencia**: Lugar centralizado para entender la estructura del dashboard
+
+Esta funcionalidad es especialmente importante para usuarios que acceden por primera vez al sistema, ya que les permite familiarizarse con las herramientas disponibles antes de proceder al análisis de datos.
