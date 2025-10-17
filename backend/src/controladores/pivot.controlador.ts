@@ -66,10 +66,22 @@ export const ejecutarPivotControlador = async (
   try {
     const payload = req.body;
     const resultado = await ejecutarConsultaPivot(payload);
-    return res.status(200).json({
+    
+    // Serializar la respuesta para calcular Content-Length
+    const respuestaJSON = JSON.stringify({
       resultado,
       generadoEn: new Date().toISOString()
     });
+    
+    // Calcular tamaño en bytes
+    const contentLength = Buffer.byteLength(respuestaJSON, 'utf-8');
+    
+    // Establecer headers para permitir progreso en el frontend
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Content-Length', contentLength.toString());
+    
+    // Enviar respuesta
+    return res.status(200).send(respuestaJSON);
   } catch (error) {
     logger.error("Error al ejecutar consulta pivot", error);
     return next(error);

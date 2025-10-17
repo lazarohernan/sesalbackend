@@ -76,6 +76,10 @@ const totalesDepartamentosMapa = computed(() => {
 const obtenerTotalDepartamento = (departamentoId: number) => {
   const datos = totalesDepartamentosMapa.value.get(departamentoId)
   if (!datos) return 0
+  // Si anio es null, mostrar total histórico
+  if (props.anio === null) {
+    return datos.totalHistorico
+  }
   switch (props.anio) {
     case 2025:
       return datos.total2025 ?? datos.totalHistorico
@@ -88,7 +92,7 @@ const obtenerTotalDepartamento = (departamentoId: number) => {
   }
 }
 
-const props = defineProps<{ anio: number; apiBase?: string }>()
+const props = defineProps<{ anio: number | null; apiBase?: string }>()
 const apiBaseNormalizado = computed(() => {
   const raw = typeof props.apiBase === 'string' ? props.apiBase.trim() : ''
   if (raw) return raw
@@ -100,7 +104,7 @@ const apiBaseNormalizado = computed(() => {
 })
 
 const emit = defineEmits<{
-  'update:anio': [anio: number]
+  'update:anio': [anio: number | null]
 }>()
 
 const createApiUrl = (path: string) => {
@@ -177,16 +181,30 @@ const fetchApiConFallback = async (path: string, params?: URLSearchParams) => {
   throw ultimoError ?? new Error('No se pudo completar la solicitud')
 }
 
+// Estado para rastrear si "Total" está seleccionado
+const totalSeleccionado = ref(false)
+
 const aniosDisponibles = computed(() => {
-  const anios = []
+  const anios: Array<{ valor: number | null; etiqueta: string }> = []
+  // Agregar todos los años desde 2008 hasta 2025 (de izquierda a derecha)
   for (let anio = 2008; anio <= 2025; anio++) {
-    anios.push(anio)
+    anios.push({ valor: anio, etiqueta: String(anio) })
   }
+  // Agregar "Total" al final
+  anios.push({ valor: null, etiqueta: 'Total' })
   return anios
 })
 
-const seleccionarAnio = (anio: number) => {
-  emit('update:anio', anio)
+const seleccionarAnio = (item: { valor: number | null; etiqueta: string }) => {
+  if (item.valor === null) {
+    // Si es "Total", marcarlo como seleccionado y emitir null
+    totalSeleccionado.value = true
+    emit('update:anio', null)
+  } else {
+    // Si es un año específico, desmarcar "Total"
+    totalSeleccionado.value = false
+    emit('update:anio', item.valor)
+  }
 }
 
 const isoToDepartamentoId: Record<string, number> = {
@@ -265,7 +283,7 @@ const cargarDatosDepartamento = async (departamentoId: number) => {
   try {
     cargandoTotales.value = true
     const params = new URLSearchParams({
-      anio: String(props.anio),
+      anio: String(props.anio ?? 2025),
       departamentoId: String(departamentoId),
       limite: '100'
     })
@@ -635,7 +653,7 @@ watch(() => props.anio, async () => {
             {{ totalesDepartamento.totalConsultas.toLocaleString('es-HN') }}
           </span>
           <span class="text-xs text-gray-600 dark:text-gray-400 ml-1">
-            consultas totales ({{ props.anio }})
+            consultas totales ({{ props.anio ?? 'Total' }})
           </span>
         </div>
 
@@ -652,17 +670,17 @@ watch(() => props.anio, async () => {
     <!-- Chips de años -->
     <div class="absolute top-4 left-4 right-4 flex flex-wrap gap-2 justify-center">
       <button
-        v-for="anio in aniosDisponibles"
-        :key="anio"
-        @click="seleccionarAnio(anio)"
+        v-for="item in aniosDisponibles"
+        :key="item.etiqueta"
+        @click="seleccionarAnio(item)"
         :class="[
           'px-3 py-1 text-xs font-medium rounded-full transition-all duration-200',
-          anio === props.anio
+          (item.valor === null && totalSeleccionado) || (item.valor !== null && item.valor === props.anio && !totalSeleccionado)
             ? 'bg-brand-base text-white shadow-md'
             : 'bg-white/90 text-gray-700 hover:bg-gray-100 dark:bg-surface-dark/90 dark:text-gray-300 dark:hover:bg-gray-700'
         ]"
       >
-        {{ anio }}
+        {{ item.etiqueta }}
       </button>
     </div>
   </div>

@@ -34,20 +34,20 @@
     >
       <div
         v-if="abierto"
-        class="absolute z-50 mt-2 w-full rounded-xl border border-slate-200/80 bg-white dark:border-slate-700 dark:bg-slate-800 shadow-xl max-h-64 overflow-y-auto backdrop-blur-sm"
+        class="absolute z-50 mt-2 min-w-full w-max max-w-md rounded-xl border border-slate-200/80 bg-white dark:border-slate-700 dark:bg-slate-800 shadow-xl max-h-64 overflow-y-auto backdrop-blur-sm"
       >
         <div class="py-1">
           <button
             v-for="opcion in options"
             :key="String(opcion.valor)"
             type="button"
-            class="flex w-full items-center justify-between px-4 py-2.5 text-left text-sm font-medium transition-all duration-150"
+            class="flex w-full items-center justify-between px-4 py-2.5 text-left text-sm font-medium transition-all duration-150 whitespace-nowrap"
             :class="modelValue === opcion.valor 
               ? 'bg-brand-base/10 dark:bg-brand-light/10 text-brand-base dark:text-brand-light' 
               : 'text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50'"
             @click="seleccionar(opcion.valor)"
           >
-            <span class="truncate">{{ opcion.etiqueta }}</span>
+            <span>{{ opcion.etiqueta }}</span>
             <svg 
               v-if="modelValue === opcion.valor" 
               class="h-5 w-5 flex-shrink-0 ml-2" 

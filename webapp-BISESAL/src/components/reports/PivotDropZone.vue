@@ -1,7 +1,7 @@
 <template>
   <section
-    class="flex flex-col gap-3 rounded-xl border-2 border-dashed p-4 transition-colors"
-    :class="estado.hover ? 'border-blue-600 bg-indigo-50 dark:bg-indigo-900/20' : 'border-slate-300 bg-slate-50 dark:border-slate-600 dark:bg-slate-800'"
+    class="flex flex-col gap-3 rounded-xl p-4 transition-colors"
+    :class="estado.hover ? 'bg-blue-100 dark:bg-blue-900/30' : 'bg-slate-100 dark:bg-slate-700'"
     @dragenter.prevent="estado.hover = true"
     @dragover.prevent="estado.hover = true"
     @dragleave.prevent="estado.hover = false"
@@ -19,14 +19,14 @@
       <div
         v-for="(item, index) in items"
         :key="item"
-        class="pointer-events-auto inline-flex items-center gap-2 rounded-full border border-transparent bg-blue-600 dark:bg-blue-700 px-3 py-1 text-sm font-medium text-white shadow-sm transition hover:bg-blue-700 dark:hover:bg-blue-800 active:scale-95"
+        class="pointer-events-auto inline-flex items-center gap-2 rounded-full border-2 border-orange-600 bg-orange-600 dark:border-orange-700 dark:bg-orange-700 px-3 py-1.5 text-sm font-semibold text-white shadow-md transition hover:bg-orange-700 hover:border-orange-700 dark:hover:bg-orange-800 dark:hover:border-orange-800 active:scale-95"
         draggable="true"
         @dragstart="handleChipDragStart($event, item, index)"
       >
         <span class="max-w-[10rem] truncate select-none">{{ formatearNombre(item) }}</span>
         <button
           type="button"
-          class="flex h-5 w-5 items-center justify-center rounded-full bg-blue-500/70 dark:bg-blue-600/70 text-white transition hover:bg-blue-500 dark:hover:bg-blue-600"
+          class="flex h-5 w-5 items-center justify-center rounded-full bg-orange-700/80 dark:bg-orange-800/80 text-white transition hover:bg-orange-800 dark:hover:bg-orange-900"
           @click.stop="handleRemove(item)"
           :aria-label="`Eliminar ${formatearNombre(item)}`"
         >
@@ -84,7 +84,7 @@ const handleChipDragStart = (event: DragEvent, item: string, index: number) => {
   dragImage.style.position = "absolute";
   dragImage.style.top = "-1000px";
   dragImage.style.padding = "8px 12px";
-  dragImage.style.background = "#2563eb";
+  dragImage.style.background = "#f97316";
   dragImage.style.color = "#ffffff";
   dragImage.style.borderRadius = "8px";
   dragImage.style.fontSize = "14px";

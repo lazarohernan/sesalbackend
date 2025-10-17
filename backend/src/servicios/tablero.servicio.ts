@@ -22,29 +22,46 @@ export interface DepartamentoDato {
 
 export const obtenerResumenTablero = async (anio?: number): Promise<ResumenTablero> => {
   const pool = obtenerPoolActual();
-  const [catalogos] = await pool.query<RowDataPacket[]>(
-    `SELECT
-        (SELECT COUNT(*) FROM BAS_BDR_REGIONES) AS totalRegiones,
-        (SELECT COUNT(*) FROM BAS_BDR_MUNICIPIOS) AS totalMunicipios,
-        (SELECT COUNT(*) FROM BAS_BDR_US) AS totalUnidadesServicio`
-  );
-
+  
+  let totalUnidadesServicio = 0;
   let totalRegistrosDetalle = 0;
 
   if (anio) {
-    // Si se especifica un año, contar registros reales de ese año
+    // Si se especifica un año, contar solo las unidades que tienen registros en ese año
     const tablaDetalle = `AT2_BDT_MENSUAL_DETALLE_${anio}`;
     try {
-      const [detalle] = await pool.query<RowDataPacket[]>(
-        `SELECT COUNT(*) AS total FROM ${tablaDetalle} WHERE N_ANIO = ?`,
-        [anio]
+      // Primero verificar que la tabla existe
+      const [tablaExiste] = await pool.query<RowDataPacket[]>(
+        `SELECT COUNT(*) as existe 
+         FROM information_schema.TABLES 
+         WHERE TABLE_SCHEMA = ? 
+         AND TABLE_NAME = ?`,
+        [entorno.baseDatos.nombre, tablaDetalle]
       );
-      totalRegistrosDetalle = Number(detalle?.[0]?.total ?? 0);
+      
+      if (Number(tablaExiste?.[0]?.existe ?? 0) > 0) {
+        const [resultado] = await pool.query<RowDataPacket[]>(
+          `SELECT 
+            COUNT(*) AS total,
+            COUNT(DISTINCT C_US) AS totalUnidades
+           FROM ${tablaDetalle} 
+           WHERE N_ANIO = ?`,
+          [anio]
+        );
+        totalRegistrosDetalle = Number(resultado?.[0]?.total ?? 0);
+        totalUnidadesServicio = Number(resultado?.[0]?.totalUnidades ?? 0);
+      } else {
+        // Tabla no existe para ese año
+        totalRegistrosDetalle = 0;
+        totalUnidadesServicio = 0;
+      }
     } catch (error) {
-      // Si la tabla no existe para ese año, usar 0
+      console.error(`Error al consultar datos para el año ${anio}:`, error);
       totalRegistrosDetalle = 0;
+      totalUnidadesServicio = 0;
     }
   } else {
+    // Sin año específico, usar totales históricos
     const [tablas] = await pool.query<RowDataPacket[]>(
       `SELECT
          SUM(TABLE_ROWS) AS total
@@ -54,12 +71,25 @@ export const obtenerResumenTablero = async (anio?: number): Promise<ResumenTable
       [entorno.baseDatos.nombre]
     );
     totalRegistrosDetalle = Number(tablas?.[0]?.total ?? 0);
+    
+    // Obtener total de unidades del catálogo
+    const [catalogoUS] = await pool.query<RowDataPacket[]>(
+      `SELECT COUNT(*) AS total FROM BAS_BDR_US`
+    );
+    totalUnidadesServicio = Number(catalogoUS?.[0]?.total ?? 0);
   }
+
+  // Obtener regiones y municipios (estos no cambian por año)
+  const [catalogos] = await pool.query<RowDataPacket[]>(
+    `SELECT
+        (SELECT COUNT(*) FROM BAS_BDR_REGIONES) AS totalRegiones,
+        (SELECT COUNT(*) FROM BAS_BDR_MUNICIPIOS) AS totalMunicipios`
+  );
 
   return {
     totalRegiones: Number(catalogos?.[0]?.totalRegiones ?? 0),
     totalMunicipios: Number(catalogos?.[0]?.totalMunicipios ?? 0),
-    totalUnidadesServicio: Number(catalogos?.[0]?.totalUnidadesServicio ?? 0),
+    totalUnidadesServicio,
     totalRegistrosDetalle
   };
 };

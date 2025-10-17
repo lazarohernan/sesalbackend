@@ -20,11 +20,14 @@ import {
   Shield,
   Cross,
   Calendar,
-  Activity
+  Activity,
+  MapPin,
+  Building2,
+  Clock
 } from 'lucide-vue-next'
 
 interface Props {
-  datos: Array<{ etiqueta: string; valor: number }>
+  datos: Array<{ etiqueta: string; valor: number; dimension?: string }>
   titulo?: string
   subtitulo?: string
   altura?: number
@@ -36,9 +39,36 @@ const props = withDefaults(defineProps<Props>(), {
   altura: 500
 })
 
-// Mapeo de conceptos a componentes de Lucide Icons
-const obtenerIconoConcepto = (concepto: string) => {
-  const conceptoLower = concepto.toLowerCase()
+// Mapeo dinámico de iconos según la dimensión
+const obtenerIcono = (etiqueta: string, dimension?: string) => {
+  const etiquetaLower = etiqueta.toLowerCase()
+  
+  // Iconos para REGION
+  if (dimension === 'REGION') {
+    if (etiquetaLower.includes('metropolitana') || etiquetaLower.includes('central')) {
+      return Building2 // Región urbana
+    }
+    return MapPin // Icono de ubicación para regiones
+  }
+  
+  // Iconos para ANIO (Año)
+  if (dimension === 'ANIO') {
+    return Calendar // Calendario para años
+  }
+  
+  // Iconos para MES
+  if (dimension === 'MES') {
+    return Clock // Reloj para meses
+  }
+  
+  // Iconos para ESTABLECIMIENTO
+  if (dimension === 'ESTABLECIMIENTO') {
+    return Building2 // Edificio para establecimientos
+  }
+  
+  // Iconos para CONCEPTO y CONCEPTO_ORDENADO (lógica original basada en contenido)
+  // La lógica es la misma para ambos ya que CONCEPTO_ORDENADO contiene los mismos textos
+  const conceptoLower = etiquetaLower
   
   // Anticonceptivos
   if (conceptoLower.includes('oral') || conceptoLower.includes('píldora') || conceptoLower.includes('ciclo')) {
@@ -254,8 +284,16 @@ const obtenerColor = (index: number) => {
       <p class="text-sm">Selecciona filtros para generar el gráfico</p>
     </div>
 
-    <!-- Grid de items con iconos (5 columnas) -->
-    <div v-else class="grid grid-cols-5 gap-4" :style="{ maxHeight: `${altura}px`, overflowY: 'auto' }">
+    <!-- Grid de items con iconos (responsive) -->
+    <div v-else class="grid gap-4" 
+         :class="{
+           'grid-cols-1': datos.length === 1,
+           'grid-cols-2': datos.length === 2,
+           'grid-cols-3': datos.length === 3,
+           'grid-cols-4': datos.length === 4,
+           'grid-cols-5': datos.length >= 5
+         }"
+         :style="{ maxHeight: `${altura}px`, overflowY: 'auto' }">
       <div
         v-for="(dato, index) in datos"
         :key="index"
@@ -267,7 +305,7 @@ const obtenerColor = (index: number) => {
           <div class="flex-shrink-0">
             <div class="w-12 h-12 rounded-xl bg-gradient-to-br flex items-center justify-center shadow-lg transform transition-transform group-hover:scale-110 text-white"
                  :class="obtenerColor(index)">
-              <component :is="obtenerIconoConcepto(dato.etiqueta)" :size="24" :stroke-width="2" />
+              <component :is="obtenerIcono(dato.etiqueta, dato.dimension)" :size="24" :stroke-width="2" />
             </div>
           </div>
 

@@ -181,18 +181,21 @@ const calcularOpacidadBarra = (index: number) => {
 .barras-wrapper {
   display: flex;
   align-items: flex-end;
-  justify-content: space-around;
-  gap: 1rem;
+  justify-content: center;
+  gap: clamp(1rem, 3vw, 3rem);
   height: 100%;
   min-width: max-content;
-  padding: 2rem 0 3rem;
+  padding: 2rem 1rem 3rem;
 }
 
 .barra-contenedor {
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-width: 60px;
+  min-width: 80px;
+  max-width: 200px;
+  width: 100%;
+  flex: 1;
   height: 100%;
   gap: 0.5rem;
 }

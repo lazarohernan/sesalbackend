@@ -1,9 +1,20 @@
 <template>
-  <div class="flex items-center justify-end gap-4 rounded-lg border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800 p-3 shadow-sm">
+  <div class="flex items-center justify-between gap-4 rounded-lg border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800 p-3 shadow-sm">
+    <!-- Texto descriptivo -->
+    <div class="flex flex-col gap-1">
+      <span class="text-sm font-semibold text-slate-900 dark:text-slate-100">
+        Exportar Indicadores
+      </span>
+      <span class="text-xs text-slate-700 dark:text-slate-300">
+        Descarga los datos en diferentes formatos
+      </span>
+    </div>
+
+    <!-- Botón de exportar -->
     <button
       @click="abrirModal"
       :disabled="!tieneDatos"
-      class="inline-flex items-center gap-2 rounded-lg border border-blue-200 bg-blue-50 dark:border-blue-700 dark:bg-blue-900/20 px-6 py-2 text-sm font-medium text-blue-700 dark:text-blue-400 shadow-sm transition hover:bg-blue-100 dark:hover:bg-blue-900/30 hover:shadow focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+      class="inline-flex items-center gap-2 rounded-lg border border-orange-200 bg-orange-50 dark:border-orange-700 dark:bg-orange-900/20 px-6 py-2 text-sm font-medium text-orange-700 dark:text-orange-400 shadow-sm transition hover:bg-orange-100 dark:hover:bg-orange-900/30 hover:shadow focus:outline-none focus:ring-2 focus:ring-orange-500 disabled:opacity-50 disabled:cursor-not-allowed"
     >
       <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
@@ -42,10 +53,50 @@
 
             <!-- Opciones de exportación -->
             <div class="space-y-3">
-              <!-- Opción CSV/Excel -->
+              <!-- Opción PDF -->
+              <button
+                @click="exportarPDF"
+                class="flex w-full items-center gap-4 rounded-lg border border-slate-200 bg-white dark:border-slate-600 dark:bg-slate-700 p-4 text-left transition hover:border-slate-300 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-slate-400"
+              >
+                <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-600">
+                  <svg class="h-6 w-6 text-slate-700 dark:text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                  </svg>
+                </div>
+                <div class="flex-1">
+                  <div class="font-semibold text-slate-900 dark:text-slate-100">Exportar como PDF</div>
+                  <div class="text-xs text-slate-600 dark:text-slate-400">
+                    {{ mensajeAdvertenciaPDF }}
+                  </div>
+                </div>
+                <svg class="h-5 w-5 text-slate-400 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+              </button>
+
+              <!-- Opción Excel (.xlsx) -->
+              <button
+                @click="exportarExcelXLSXClick"
+                class="flex w-full items-center gap-4 rounded-lg border border-slate-200 bg-white dark:border-slate-600 dark:bg-slate-700 p-4 text-left transition hover:border-slate-300 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-slate-400"
+              >
+                <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-600">
+                  <svg class="h-6 w-6 text-slate-700 dark:text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2h-2M13 3v6h6"></path>
+                  </svg>
+                </div>
+                <div class="flex-1">
+                  <div class="font-semibold text-slate-900 dark:text-slate-100">Exportar como Excel</div>
+                  <div class="text-xs text-slate-600 dark:text-slate-400">Archivo .xlsx nativo de Microsoft Excel</div>
+                </div>
+                <svg class="h-5 w-5 text-slate-400 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                </svg>
+              </button>
+
+              <!-- Opción CSV -->
               <button
                 @click="exportarExcel"
-                class="flex w-full items-center gap-4 rounded-lg border border-slate-200 bg-white dark:border-slate-600 dark:bg-slate-700 p-4 text-left transition hover:border-blue-500 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                class="flex w-full items-center gap-4 rounded-lg border border-slate-200 bg-white dark:border-slate-600 dark:bg-slate-700 p-4 text-left transition hover:border-slate-300 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-slate-400"
               >
                 <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-600">
                   <svg class="h-6 w-6 text-slate-700 dark:text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -55,25 +106,6 @@
                 <div class="flex-1">
                   <div class="font-semibold text-slate-900 dark:text-slate-100">Exportar como CSV</div>
                   <div class="text-xs text-slate-600 dark:text-slate-400">Formato compatible con Excel y hojas de cálculo</div>
-                </div>
-                <svg class="h-5 w-5 text-slate-400 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-                </svg>
-              </button>
-
-              <!-- Opción PDF -->
-              <button
-                @click="exportarPDF"
-                class="flex w-full items-center gap-4 rounded-lg border border-slate-200 bg-white dark:border-slate-600 dark:bg-slate-700 p-4 text-left transition hover:border-blue-500 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              >
-                <div class="flex h-12 w-12 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-600">
-                  <svg class="h-6 w-6 text-slate-700 dark:text-slate-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
-                  </svg>
-                </div>
-                <div class="flex-1">
-                  <div class="font-semibold text-slate-900 dark:text-slate-100">Exportar como PDF</div>
-                  <div class="text-xs text-slate-600 dark:text-slate-400">Documento listo para imprimir o compartir</div>
                 </div>
                 <svg class="h-5 w-5 text-slate-400 dark:text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
@@ -99,7 +131,7 @@
 
 <script setup lang="ts">
 import { defineProps, computed, ref } from 'vue';
-import { exportarExcel as exportarExcelUtil, exportarPDF as exportarPDFUtil } from '../../utils/exportar.utils';
+import { exportarExcel as exportarExcelUtil, exportarExcelXLSX, exportarPDF as exportarPDFUtil } from '../../utils/exportar.utils';
 
 interface Props {
   cabeceras: string[];
@@ -118,6 +150,12 @@ const props = defineProps<Props>();
 
 const modalAbierto = ref(false);
 const tieneDatos = computed(() => props.cuerpo.length > 0 || props.totales.length > 0);
+const tieneMuchasColumnas = computed(() => props.cabeceras.length > 15);
+const mensajeAdvertenciaPDF = computed(() => 
+  tieneMuchasColumnas.value 
+    ? `⚠️ Esta tabla tiene ${props.cabeceras.length} columnas. Para mejor visualización, se recomienda usar CSV o Excel.`
+    : 'Documento listo para imprimir o compartir'
+);
 
 const abrirModal = (): void => {
   modalAbierto.value = true;
@@ -130,6 +168,12 @@ const cerrarModal = (): void => {
 const exportarExcel = (): void => {
   if (!tieneDatos.value) return;
   exportarExcelUtil(props.cabeceras, props.cuerpo, props.totales);
+  cerrarModal();
+};
+
+const exportarExcelXLSXClick = (): void => {
+  if (!tieneDatos.value) return;
+  exportarExcelXLSX(props.cabeceras, props.cuerpo, props.totales);
   cerrarModal();
 };
 

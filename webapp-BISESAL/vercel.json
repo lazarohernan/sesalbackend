@@ -7,6 +7,10 @@
     {
       "source": "/salud",
       "destination": "http://18.191.147.182:4000/salud"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
     }
   ]
 }

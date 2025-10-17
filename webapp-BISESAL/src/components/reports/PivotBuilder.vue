@@ -1,14 +1,7 @@
 <template>
   <div class="grid gap-6 text-slate-900 dark:text-slate-100 min-w-0">
-    <header class="space-y-1">
-      <h2 class="text-2xl font-semibold text-slate-900 dark:text-slate-100">Tabla Dinámica</h2>
-      <p class="max-w-xl text-sm text-slate-500 dark:text-slate-400">
-        Arrastra dimensiones y métricas para explorar los datos en tiempo real.
-      </p>
-    </header>
-
     <!-- Selector de Año -->
-    <section class="flex items-center gap-4 rounded-xl border border-border bg-surface dark:border-border-dark dark:bg-surface-dark p-4 shadow-panel">
+    <section class="flex items-center gap-4 rounded-xl border border-border bg-surface dark:border-border-dark dark:bg-surface-dark p-4 shadow-panel mb-6">
       <div class="flex items-center gap-4">
         <label class="text-sm font-medium text-secondary dark:text-text-muted">
           Año de consulta:
@@ -34,8 +27,7 @@
           <div
             v-for="dimension in dimensionesFiltradas"
             :key="dimension.id"
-            class="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white dark:border-accent-base dark:bg-accent-dark/20 px-3 py-2 text-sm text-primary dark:text-text-inverted shadow-sm transition hover:border-accent-base hover:shadow-md cursor-move"
-            :class="obtenerClaseContenedorDimension(dimension.tipo)"
+            class="flex items-center justify-between gap-3 rounded-lg border border-blue-200 bg-white dark:border-blue-700 dark:bg-slate-800 px-3 py-2 text-sm text-primary dark:text-text-inverted shadow-sm transition hover:border-blue-400 hover:shadow-md cursor-move"
             draggable="true"
             @dragstart="handleDragStart($event, 'dimension', dimension.id)"
             tabindex="0"
@@ -43,11 +35,10 @@
             :aria-label="`Arrastrar dimensión ${dimension.etiqueta}`"
           >
             <div class="flex flex-col">
-              <span class="font-medium text-slate-900 dark:text-slate-100">{{ dimension.etiqueta }}</span>
+              <span class="font-semibold text-slate-900 dark:text-slate-100">{{ dimension.etiqueta }}</span>
             </div>
             <span
-              class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium capitalize"
-              :class="obtenerClaseBadgeDimension(dimension.tipo)"
+              class="inline-flex items-center rounded-full bg-orange-500 dark:bg-orange-600 px-2.5 py-1 text-xs font-semibold capitalize text-white shadow-sm"
             >
               {{ dimension.tipo === 'number' ? 'Numérica' : 'Texto' }}
             </span>
@@ -61,8 +52,7 @@
           <div
             v-for="medida in medidasFiltradas"
             :key="medida.id"
-            class="flex items-center justify-between gap-3 rounded-lg border border-slate-200 bg-white dark:border-accent-base dark:bg-accent-dark/20 px-3 py-2 text-sm text-primary dark:text-text-inverted shadow-sm transition hover:border-accent-base hover:shadow-md cursor-move"
-            :class="obtenerClaseContenedorMedida(medida.agregacionPorDefecto)"
+            class="flex items-center justify-between gap-3 rounded-lg border border-blue-200 bg-white dark:border-blue-700 dark:bg-slate-800 px-3 py-2 text-sm text-primary dark:text-text-inverted shadow-sm transition hover:border-blue-400 hover:shadow-md cursor-move"
             draggable="true"
             @dragstart="handleDragStart($event, 'measure', medida.id)"
             tabindex="0"
@@ -70,11 +60,10 @@
             :aria-label="`Arrastrar métrica ${medida.etiqueta}`"
           >
             <div class="flex flex-col">
-              <span class="font-medium text-slate-900 dark:text-slate-100">{{ medida.etiqueta }}</span>
+              <span class="font-semibold text-slate-900 dark:text-slate-100">{{ medida.etiqueta }}</span>
             </div>
             <span
-              class="inline-flex items-center rounded-full px-2.5 py-1 text-xs font-medium capitalize"
-              :class="obtenerClaseBadgeMedida(medida.agregacionPorDefecto)"
+              class="inline-flex items-center rounded-full bg-orange-500 dark:bg-orange-600 px-2.5 py-1 text-xs font-semibold capitalize text-white shadow-sm"
             >
               {{ formatearAgregacion(medida.agregacionPorDefecto) }}
             </span>
@@ -120,15 +109,8 @@
 
     <section
       v-if="visibleFilters.length"
-      class="rounded-xl border border-border bg-surface dark:border-border-dark dark:bg-surface-dark p-4 shadow"
+      class="rounded-xl border border-border bg-surface dark:border-border-dark dark:bg-surface-dark p-4 shadow mb-6"
     >
-      <header class="mb-3 flex items-center justify-between gap-3">
-        <div>
-          <h3 class="text-base font-semibold text-slate-900 dark:text-slate-100">Filtros aplicados</h3>
-          <p class="text-sm text-slate-500 dark:text-slate-400">Ajusta los valores sin mover los chips.</p>
-        </div>
-      </header>
-
       <div class="flex flex-wrap gap-4">
         <MultiSelect
           v-for="filtro in visibleFilters"
@@ -467,7 +449,7 @@ const handleDragStart = (event: DragEvent, tipo: "dimension" | "measure", id: st
   dragImage.style.position = "absolute";
   dragImage.style.top = "-1000px";
   dragImage.style.padding = "8px 12px";
-  dragImage.style.background = "#2563eb";
+  dragImage.style.background = "#f97316";
   dragImage.style.color = "#ffffff";
   dragImage.style.borderRadius = "8px";
   dragImage.style.fontSize = "14px";

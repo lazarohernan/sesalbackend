@@ -1,5 +1,6 @@
 // Utilidades para exportación de datos
 import { formatearCabecera as formatearCabeceraUtil } from "./formateo.utils";
+import * as XLSX from 'xlsx';
 
 export interface MetaExportacion {
   generadoEn: string;
@@ -51,8 +52,12 @@ export const exportarExcel = (
     fila.map(celda => `"${String(celda).replace(/"/g, '""')}"`).join(',')
   ).join('\n');
 
+  // Agregar BOM (Byte Order Mark) para UTF-8 para que Excel reconozca correctamente los acentos
+  const BOM = '\uFEFF';
+  const csvConBOM = BOM + csvContent;
+
   // Crear y descargar archivo
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const blob = new Blob([csvConBOM], { type: 'text/csv;charset=utf-8;' });
   const link = document.createElement('a');
   const url = URL.createObjectURL(blob);
   link.setAttribute('href', url);
@@ -61,6 +66,77 @@ export const exportarExcel = (
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
+};
+
+// Función para exportar a Excel nativo (.xlsx)
+export const exportarExcelXLSX = (
+  cabeceras: string[],
+  cuerpo: unknown[][],
+  totales: unknown[]
+): void => {
+  // Crear datos para Excel
+  const datosExcel: (string | number)[][] = [];
+
+  // Agregar encabezados
+  const encabezados = cabeceras.map(cabecera => formatearCabecera(cabecera));
+  datosExcel.push(encabezados);
+
+  // Agregar filas de datos
+  cuerpo.forEach(fila => {
+    const filaFormateada = fila.map(celda => {
+      const valorFormateado = formatearCelda(celda);
+      // Intentar convertir números para Excel
+      const numero = parseFloat(String(celda));
+      return !isNaN(numero) && isFinite(numero) ? numero : valorFormateado;
+    });
+    datosExcel.push(filaFormateada);
+  });
+
+  // Agregar fila de totales si existe
+  if (totales.length > 0) {
+    const totalesFormateados = totales.map(total => {
+      const valorFormateado = formatearCelda(total);
+      // Intentar convertir números para Excel
+      const numero = parseFloat(String(total));
+      return !isNaN(numero) && isFinite(numero) ? numero : valorFormateado;
+    });
+    datosExcel.push(totalesFormateados);
+  }
+
+  // Crear libro de trabajo
+  const wb = XLSX.utils.book_new();
+  const ws = XLSX.utils.aoa_to_sheet(datosExcel);
+
+  // Calcular anchos de columna automáticamente basado en el contenido
+  const colWidths = cabeceras.map((_, colIndex) => {
+    // Encontrar el valor más largo en cada columna
+    const cabecera = cabeceras[colIndex] || '';
+    let maxLength = formatearCabecera(cabecera).length;
+    
+    // Revisar todas las filas de datos
+    cuerpo.forEach(fila => {
+      const cellValue = String(fila[colIndex] || '');
+      maxLength = Math.max(maxLength, cellValue.length);
+    });
+    
+    // Revisar totales si existen
+    if (totales.length > 0 && totales[colIndex]) {
+      const totalValue = String(totales[colIndex]);
+      maxLength = Math.max(maxLength, totalValue.length);
+    }
+    
+    // Ajustar ancho: mínimo 10, máximo 50, con padding
+    return { wch: Math.min(Math.max(maxLength + 2, 10), 50) };
+  });
+  
+  ws['!cols'] = colWidths;
+
+  // Agregar hoja al libro
+  XLSX.utils.book_append_sheet(wb, ws, 'Datos');
+
+  // Generar y descargar archivo
+  const nombreArchivo = `indicadores_sesal_${new Date().toISOString().split('T')[0]}.xlsx`;
+  XLSX.writeFile(wb, nombreArchivo);
 };
 
 // Función para generar HTML para PDF

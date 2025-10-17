@@ -14,12 +14,13 @@ const props = defineProps<Props>()
 
 // Composable para consultas pivot
 const apiBaseRef = toRef(props, 'apiBase')
-const { cargando: cargandoConsulta, error: errorConsulta, resultado, ejecutarConsulta } = usePivotQuery(apiBaseRef)
+const { cargando: cargandoConsulta, error: errorConsulta, resultado, progreso: progresoConsulta, ejecutarConsulta } = usePivotQuery(apiBaseRef)
 
 // Estados reactivos para los filtros
-const anioSeleccionado = ref<number | null>(null)
+const anioInicio = ref<number | null>(null)
+const anioFin = ref<number | null>(null)
 const regionSeleccionada = ref<string>('')
-const conceptoSeleccionado = ref<string>('')
+const conceptosSeleccionados = ref<string[]>([])
 
 // Estado para el tipo de visualización
 const tipoVisualizacion = ref<'barras' | 'iconos'>('barras')
@@ -33,6 +34,9 @@ const conceptosDisponibles = ref<{ valor: string; etiqueta: string }[]>([])
 const cargandoAnios = ref(false)
 const cargandoRegiones = ref(false)
 const cargandoConceptos = ref(false)
+
+// Estado del dropdown de conceptos
+const dropdownConceptosAbierto = ref(false)
 
 // Cargar opciones de los selectores
 const cargarAnios = async () => {
@@ -79,7 +83,7 @@ const cargarRegiones = async () => {
 const cargarConceptos = async () => {
   cargandoConceptos.value = true
   try {
-    const respuesta = await fetch(`${props.apiBase}/api/pivot/dimensiones/CONCEPTO/valores?limite=200`)
+    const respuesta = await fetch(`${props.apiBase}/api/pivot/dimensiones/CONCEPTO_ORDENADO/valores?limite=200`)
     if (!respuesta.ok) throw new Error(`Error: ${respuesta.status}`)
 
     const datos = await respuesta.json()
@@ -88,7 +92,7 @@ const cargarConceptos = async () => {
       etiqueta: concepto.etiqueta
     })) || []
   } catch (error) {
-    console.error('Error cargando conceptos:', error)
+    console.error('Error cargando conceptos ordenados:', error)
     conceptosDisponibles.value = []
   } finally {
     cargandoConceptos.value = false
@@ -113,48 +117,109 @@ const opcionesAnios = computed(() =>
   }))
 )
 
+// Opciones para el selector "Hasta" - solo años anteriores al seleccionado en "Desde"
+const opcionesAniosFin = computed(() => {
+  if (anioInicio.value === null) {
+    // Si no hay año de inicio seleccionado, mostrar todos
+    return opcionesAnios.value
+  }
+  
+  // Filtrar para mostrar solo años menores que el año de inicio (años anteriores)
+  return aniosDisponibles.value
+    .filter(anio => anio !== null && anio < anioInicio.value!)
+    .map(anio => ({
+      valor: anio,
+      etiqueta: String(anio)
+    }))
+})
 
 const opcionesRegiones = computed(() =>
   [{ valor: '', etiqueta: 'Todas las regiones' }, ...regionesDisponibles.value]
-)
-
-const opcionesConceptos = computed(() =>
-  [{ valor: '', etiqueta: 'Todos los conceptos' }, ...conceptosDisponibles.value]
 )
 
 // Construir filtros activos
 const construirFiltros = (): PivotFilter[] => {
   const filtros: PivotFilter[] = []
   
+  // Filtro de año: si solo hay Desde, es año único; si hay Desde y Hasta, es rango
+  if (anioInicio.value !== null) {
+    const aniosRango: number[] = []
+    const inicio = anioInicio.value
+    const fin = anioFin.value || inicio // Si no hay fin, usar el mismo que inicio
+    
+    // Determinar el rango correcto (de menor a mayor)
+    const minAnio = Math.min(inicio, fin)
+    const maxAnio = Math.max(inicio, fin)
+    
+    // Agregar todos los años en el rango
+    for (let anio = minAnio; anio <= maxAnio; anio++) {
+      aniosRango.push(anio)
+    }
+    
+    if (aniosRango.length > 0) {
+      filtros.push({ field: 'ANIO', values: aniosRango })
+    }
+  }
+  
   if (regionSeleccionada.value) {
     filtros.push({ field: 'REGION', values: [regionSeleccionada.value] })
   }
   
-  if (conceptoSeleccionado.value) {
-    filtros.push({ field: 'CONCEPTO', values: [conceptoSeleccionado.value] })
+  if (conceptosSeleccionados.value.length > 0) {
+    filtros.push({ field: 'CONCEPTO_ORDENADO', values: conceptosSeleccionados.value })
   }
   
   return filtros
 }
 
+// Mensaje de carga basado en el progreso real
+const mensajeCarga = computed(() => {
+  const progreso = progresoConsulta.value
+  if (progreso === 0) return 'Iniciando consulta...'
+  if (progreso < 30) return 'Enviando solicitud al servidor...'
+  if (progreso < 60) return 'Consultando base de datos...'
+  if (progreso < 90) return 'Recibiendo datos...'
+  if (progreso < 100) return 'Procesando resultados...'
+  return 'Datos cargados'
+})
+
+// Determinar la dimensión de agrupación según los filtros activos
+const determinarDimensionAgrupacion = (): string => {
+  const filtros = construirFiltros()
+  
+  // Obtener las dimensiones que ya están filtradas
+  const dimensionesFiltradas = new Set(
+    filtros.map(f => f.field)
+  )
+  
+  // Prioridad de dimensiones para agrupar (en orden de preferencia)
+  const prioridad = ['CONCEPTO_ORDENADO', 'REGION', 'ANIO', 'MES']
+  
+  // Seleccionar la primera dimensión que NO esté filtrada
+  for (const dim of prioridad) {
+    if (!dimensionesFiltradas.has(dim)) {
+      return dim
+    }
+  }
+  
+  // Si todas están filtradas, usar CONCEPTO_ORDENADO por defecto
+  return 'CONCEPTO_ORDENADO'
+}
+
 // Ejecutar consulta con filtros actuales
 const ejecutarConsultaIndicadores = async () => {
   const filtros = construirFiltros()
+  const dimensionAgrupacion = determinarDimensionAgrupacion()
   
   // Preparar el payload base
   const payload: any = {
     filters: filtros,
-    rows: ['CONCEPTO'], // Agrupar por concepto (en mayúsculas)
+    rows: [dimensionAgrupacion], // Agrupar dinámicamente según filtros
     values: [
       { field: 'TOTAL', aggregation: 'SUM' }
     ],
-    limit: 50, // Aumentado para mostrar más conceptos
+    limit: 100, // Mostrar hasta 100 resultados para incluir todos los conceptos (57-62)
     includeTotals: true
-  }
-  
-  // Solo agregar year si hay un año específico seleccionado (no null)
-  if (anioSeleccionado.value !== null) {
-    payload.year = anioSeleccionado.value
   }
   
   await ejecutarConsulta(payload)
@@ -166,19 +231,74 @@ const datosGrafico = computed(() => {
     return []
   }
   
-  return resultado.value.datos.map(dato => ({
-    etiqueta: String(dato.CONCEPTO || 'Sin categoría'),
-    valor: Number(dato['Total de Atenciones'] || 0)
-  })).sort((a, b) => b.valor - a.valor) // Ordenar de mayor a menor
+  // Determinar qué campo usar como etiqueta basándose en las dimensiones de filas
+  const dimensionAgrupacion = resultado.value.metadata?.dimensionesFilas?.[0] || 'CONCEPTO_ORDENADO'
+  
+  return resultado.value.datos.map(dato => {
+    // Obtener la etiqueta según la dimensión de agrupación
+    let etiqueta = 'Sin categoría'
+    if (dato[dimensionAgrupacion]) {
+      etiqueta = String(dato[dimensionAgrupacion])
+    } else if (dato.CONCEPTO_ORDENADO || dato['CONCEPTO ORDENADO']) {
+      etiqueta = String(dato.CONCEPTO_ORDENADO || dato['CONCEPTO ORDENADO'])
+    } else if (dato.CONCEPTO) {
+      etiqueta = String(dato.CONCEPTO)
+    } else if (dato.REGION) {
+      etiqueta = String(dato.REGION)
+    } else if (dato.ANIO) {
+      etiqueta = String(dato.ANIO)
+    } else if (dato.MES) {
+      etiqueta = `Mes ${dato.MES}`
+    }
+    
+    return {
+      etiqueta,
+      valor: Number(dato['Total de Atenciones'] || 0),
+      dimension: dimensionAgrupacion // Agregar la dimensión para referencia
+    }
+  }).sort((a, b) => b.valor - a.valor) // Ordenar de mayor a menor
+})
+
+// Generar título dinámico según la dimensión de agrupación
+const tituloDinamico = computed(() => {
+  if (!resultado.value?.metadata?.dimensionesFilas?.[0]) {
+    return 'Indicadores por Total de Atenciones'
+  }
+  
+  const dimension = resultado.value.metadata.dimensionesFilas[0]
+  const mapaEtiquetas: Record<string, string> = {
+    'CONCEPTO': 'Conceptos',
+    'CONCEPTO_ORDENADO': 'Conceptos Ordenados',
+    'CONCEPTO ORDENADO': 'Conceptos Ordenados',
+    'REGION': 'Regiones',
+    'ANIO': 'Años',
+    'MES': 'Meses',
+    'ESTABLECIMIENTO': 'Establecimientos',
+    'NIVEL_ESTABLECIMIENTO': 'Niveles de Establecimiento',
+    'FORMULARIO': 'Formularios'
+  }
+  
+  const etiquetaDimension = mapaEtiquetas[dimension] || dimension
+  return `${etiquetaDimension} por Total de Atenciones`
 })
 
 // Crear descripción legible de filtros aplicados
 const descripcionFiltros = computed(() => {
   const filtros: string[] = []
   
-  // Año
-  if (anioSeleccionado.value !== null) {
-    filtros.push(`Año ${anioSeleccionado.value}`)
+  // Año o rango
+  if (anioInicio.value !== null) {
+    const inicio = anioInicio.value
+    const fin = anioFin.value || inicio
+    
+    const minAnio = Math.min(inicio, fin)
+    const maxAnio = Math.max(inicio, fin)
+    
+    if (minAnio === maxAnio) {
+      filtros.push(`Año ${minAnio}`)
+    } else {
+      filtros.push(`${minAnio} - ${maxAnio}`)
+    }
   }
   
   // Región
@@ -187,18 +307,39 @@ const descripcionFiltros = computed(() => {
     filtros.push(`${region?.etiqueta || regionSeleccionada.value}`)
   }
   
-  // Concepto
-  if (conceptoSeleccionado.value) {
-    const concepto = conceptosDisponibles.value.find(c => c.valor === conceptoSeleccionado.value)
-    filtros.push(`${concepto?.etiqueta || conceptoSeleccionado.value}`)
+  // Conceptos
+  if (conceptosSeleccionados.value.length > 0) {
+    const etiquetas = conceptosSeleccionados.value.map(valor => {
+      const concepto = conceptosDisponibles.value.find(c => c.valor === valor)
+      return concepto?.etiqueta || valor
+    })
+    filtros.push(`${etiquetas.length} concepto(s)`)
   }
   
   return filtros.length > 0 ? filtros.join(' • ') : 'Datos totales'
 })
 
-// Watchers para detectar cambios en filtros
-watch([anioSeleccionado, regionSeleccionada, conceptoSeleccionado], () => {
-  void ejecutarConsultaIndicadores()
+// Watcher para limpiar anioFin si se vuelve inválido
+watch(anioInicio, (nuevoInicio) => {
+  // Si anioFin está definido y es mayor o igual que anioInicio, limpiarlo
+  if (anioFin.value !== null && nuevoInicio !== null && anioFin.value >= nuevoInicio) {
+    anioFin.value = null
+  }
+})
+
+// Watchers para detectar cambios en filtros con debounce
+let timeoutId: ReturnType<typeof setTimeout> | null = null
+
+watch([anioInicio, anioFin, regionSeleccionada, conceptosSeleccionados], () => {
+  // Limpiar timeout anterior si existe
+  if (timeoutId) {
+    clearTimeout(timeoutId)
+  }
+  
+  // Esperar 300ms antes de ejecutar la consulta
+  timeoutId = setTimeout(() => {
+    void ejecutarConsultaIndicadores()
+  }, 300)
 }, { deep: true })
 </script>
 
@@ -223,25 +364,32 @@ watch([anioSeleccionado, regionSeleccionada, conceptoSeleccionado], () => {
       <div class="bg-white/50 dark:bg-slate-800/30 border-b border-border dark:border-border-dark p-6">
         <!-- Filtros en línea compactos -->
         <div class="flex flex-wrap items-center gap-3">
-          <!-- Filtro de Año -->
+          <!-- Filtro de Año (Desde - Hasta) -->
           <div class="flex items-center gap-2 min-w-0">
             <label class="flex items-center gap-1.5 text-sm font-medium text-text-secondary dark:text-text-muted whitespace-nowrap">
               <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
-              <span>Año:</span>
+              <span>Desde:</span>
             </label>
-            <div class="relative min-w-[160px]">
+            <div class="relative min-w-[120px]">
               <CompactSelect
-                v-model="anioSeleccionado"
+                v-model="anioInicio"
                 :options="opcionesAnios"
                 :disabled="cargandoAnios"
                 :loading="cargandoAnios"
-                placeholder="Seleccione año"
+                placeholder="Año"
               />
-              <div v-if="cargandoAnios" class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                <div class="w-4 h-4 border-2 border-brand-base/30 border-t-brand-base rounded-full animate-spin"></div>
-              </div>
+            </div>
+            <span class="text-sm text-text-secondary dark:text-text-muted">hasta</span>
+            <div class="relative min-w-[120px]">
+              <CompactSelect
+                v-model="anioFin"
+                :options="opcionesAniosFin"
+                :disabled="cargandoAnios || anioInicio === null"
+                :loading="cargandoAnios"
+                placeholder="Año (opcional)"
+              />
             </div>
           </div>
 
@@ -268,24 +416,55 @@ watch([anioSeleccionado, regionSeleccionada, conceptoSeleccionado], () => {
             </div>
           </div>
 
-          <!-- Filtro de Concepto -->
+          <!-- Filtro de Conceptos (Múltiple) -->
           <div class="flex items-center gap-2 min-w-0 flex-1">
             <label class="flex items-center gap-1.5 text-sm font-medium text-text-secondary dark:text-text-muted whitespace-nowrap">
               <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
               </svg>
-              <span>Concepto:</span>
+              <span>Conceptos:</span>
             </label>
             <div class="relative min-w-[280px] flex-1 max-w-md">
-              <CompactSelect
-                v-model="conceptoSeleccionado"
-                :options="opcionesConceptos"
+              <button
+                type="button"
+                @click="dropdownConceptosAbierto = !dropdownConceptosAbierto"
                 :disabled="cargandoConceptos"
-                :loading="cargandoConceptos"
-                placeholder="Todos los conceptos"
-              />
-              <div v-if="cargandoConceptos" class="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none">
-                <div class="w-4 h-4 border-2 border-brand-base/30 border-t-brand-base rounded-full animate-spin"></div>
+                class="flex w-full items-center justify-between gap-2 rounded-lg border-2 border-slate-200/80 bg-white dark:border-slate-700 dark:bg-slate-800/50 px-4 py-2.5 text-sm font-medium text-slate-900 dark:text-slate-100 shadow-sm transition-all duration-200 hover:border-brand-base/50 hover:bg-slate-50 dark:hover:border-brand-light/50 dark:hover:bg-slate-700/50 focus:border-brand-base focus:outline-none focus:ring-2 focus:ring-brand-base/20 dark:focus:border-brand-light dark:focus:ring-brand-light/20 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <span class="truncate" :class="{ 'text-slate-500 dark:text-slate-400': conceptosSeleccionados.length === 0 }">
+                  {{ conceptosSeleccionados.length > 0 ? `${conceptosSeleccionados.length} seleccionado(s)` : 'Todos los conceptos' }}
+                </span>
+                <svg 
+                  class="h-5 w-5 transition-transform duration-200 flex-shrink-0"
+                  :class="{ 'rotate-180 text-brand-base dark:text-brand-light': dropdownConceptosAbierto, 'text-slate-400 dark:text-slate-500': !dropdownConceptosAbierto }"
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"></path>
+                </svg>
+              </button>
+              
+              <!-- Dropdown con checkboxes -->
+              <div
+                v-if="dropdownConceptosAbierto"
+                class="absolute z-50 mt-2 w-full min-w-max max-w-md rounded-xl border border-slate-200/80 bg-white dark:border-slate-700 dark:bg-slate-800 shadow-xl max-h-64 overflow-y-auto"
+              >
+                <div class="py-1">
+                  <label
+                    v-for="concepto in conceptosDisponibles"
+                    :key="concepto.valor"
+                    class="flex items-center gap-3 px-4 py-2.5 text-sm font-medium cursor-pointer transition-all duration-150 hover:bg-slate-50 dark:hover:bg-slate-700/50"
+                  >
+                    <input
+                      type="checkbox"
+                      :value="concepto.valor"
+                      v-model="conceptosSeleccionados"
+                      class="w-4 h-4 rounded border-slate-300 text-brand-base focus:ring-brand-base/20 dark:border-slate-600 dark:bg-slate-700"
+                    />
+                    <span class="text-slate-700 dark:text-slate-300">{{ concepto.etiqueta }}</span>
+                  </label>
+                </div>
               </div>
             </div>
           </div>
@@ -361,18 +540,27 @@ watch([anioSeleccionado, regionSeleccionada, conceptoSeleccionado], () => {
         </div>
       </div>
 
-      <!-- Indicador de carga -->
+      <!-- Indicador de carga con progreso -->
       <div
         v-else-if="cargandoConsulta"
         class="flex items-center justify-center h-80 p-6"
       >
-        <div class="text-center">
-          <div class="relative inline-flex">
+        <div class="text-center max-w-md w-full">
+          <div class="relative inline-flex mb-6">
             <div class="w-16 h-16 border-4 border-brand-base/20 dark:border-brand-light/20 rounded-full"></div>
             <div class="absolute top-0 left-0 w-16 h-16 border-4 border-brand-base dark:border-brand-light border-t-transparent rounded-full animate-spin"></div>
           </div>
-          <p class="text-base font-semibold text-text-primary dark:text-text-light mt-6">Cargando indicadores</p>
-          <p class="text-sm text-text-secondary dark:text-text-muted mt-2">Procesando datos...</p>
+          <p class="text-base font-semibold text-text-primary dark:text-text-light">Cargando indicadores</p>
+          <p class="text-sm text-text-secondary dark:text-text-muted mt-2">{{ mensajeCarga }}</p>
+          
+          <!-- Barra de progreso -->
+          <div class="mt-6 w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5 overflow-hidden">
+            <div 
+              class="bg-brand-base dark:bg-brand-light h-2.5 rounded-full transition-all duration-300 ease-out"
+              :style="{ width: `${progresoConsulta}%` }"
+            ></div>
+          </div>
+          <p class="text-xs font-medium text-brand-base dark:text-brand-light mt-2">{{ progresoConsulta }}%</p>
         </div>
       </div>
 
@@ -381,17 +569,17 @@ watch([anioSeleccionado, regionSeleccionada, conceptoSeleccionado], () => {
         <GraficoBarras
           v-if="tipoVisualizacion === 'barras'"
           :datos="datosGrafico"
-          titulo="Conceptos por Total de Atenciones"
+          :titulo="tituloDinamico"
           :subtitulo="`${descripcionFiltros}`"
           color-barra="#0066cc"
-          :altura="700"
+          :altura="1200"
         />
         <GraficoIconos
           v-else
           :datos="datosGrafico"
-          titulo="Conceptos por Total de Atenciones"
+          :titulo="tituloDinamico"
           :subtitulo="`${descripcionFiltros}`"
-          :altura="800"
+          :altura="1400"
         />
       </div>
 

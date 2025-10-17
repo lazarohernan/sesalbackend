@@ -40,14 +40,6 @@ const isActive = (tabId: string) => props.activeTab === tabId
       ]"
       @click="selectTab(tab.id)"
     >
-      <!-- Indicador de pestaña activa -->
-      <div
-        v-if="isActive(tab.id)"
-        class="absolute -top-1 -right-1 h-3 w-3 rounded-full bg-white shadow-sm"
-      >
-        <div class="h-full w-full rounded-full bg-brand-base"></div>
-      </div>
-
       <span class="relative z-10">{{ tab.label }}</span>
     </button>
   </div>
