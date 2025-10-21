@@ -38,7 +38,7 @@ app.use(express.static(path.join(__dirname, '..', 'public')));
 app.use("/api", rutas);
 
 // SPA: enviar index.html para rutas que no sean API
-app.get('*', (req, res) => {
+app.get('/:path*', (req, res) => {
   if (req.path.startsWith('/api')) {
     return res.status(404).json({ mensaje: 'Ruta no encontrada' });
   }
