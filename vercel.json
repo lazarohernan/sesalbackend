@@ -1,0 +1,39 @@
+{
+  "buildCommand": "cd webapp-BISESAL && npm install && npm run build",
+  "outputDirectory": "webapp-BISESAL/dist",
+  "installCommand": "echo 'Skipping root install'",
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "http://3.148.24.255/api/$1"
+    },
+    {
+      "source": "/salud",
+      "destination": "http://3.148.24.255/salud"
+    },
+    {
+      "source": "/(.*)",
+      "destination": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, PUT, DELETE, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Content-Type"
+        }
+      ]
+    }
+  ]
+}
+
