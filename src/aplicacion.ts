@@ -37,8 +37,11 @@ app.use(express.static(path.join(__dirname, '..', 'public')));
 
 app.use("/api", rutas);
 
-// SPA: enviar index.html para rutas no encontradas
-app.get('*', (req, res) => {
+// SPA: enviar index.html para rutas que no sean API
+app.get('/*', (req, res) => {
+  if (req.path.startsWith('/api')) {
+    return res.status(404).json({ mensaje: 'Ruta no encontrada' });
+  }
   res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
 });
 
