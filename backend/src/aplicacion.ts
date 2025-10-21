@@ -1,4 +1,5 @@
 import express from "express";
+import path from "path";
 import cors from "cors";
 import helmet from "helmet";
 import compression from "compression";
@@ -15,16 +16,9 @@ app.set("trust proxy", true);
 
 app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
 // CORS configurable por entorno
-const allowedOrigins = (process.env.CORS_ORIGINS || "").split(",").map((s) => s.trim()).filter(Boolean);
 app.use(
   cors({
-    origin: allowedOrigins.length
-      ? (origin, callback) => {
-          if (!origin) return callback(null, true);
-          const ok = allowedOrigins.some((o) => origin === o);
-          return callback(ok ? null : new Error("Origen no permitido por CORS"), ok);
-        }
-      : true
+    origin: true
   })
 );
 app.use(compression());
@@ -38,7 +32,18 @@ app.get("/salud", (_req, res) => {
   res.json({ estado: "ok", servicio: "bi-backend", ambiente: entorno.ambiente });
 });
 
+// Servir archivos estáticos del frontend
+app.use(express.static(path.join(__dirname, '..', 'public')));
+
 app.use("/api", rutas);
+
+// SPA: enviar index.html para rutas que no sean API
+app.get('/:path*', (req, res) => {
+  if (req.path.startsWith('/api')) {
+    return res.status(404).json({ mensaje: 'Ruta no encontrada' });
+  }
+  res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
+});
 
 app.use(notFoundHandler);
 app.use(errorHandler);

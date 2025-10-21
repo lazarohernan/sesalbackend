@@ -14,6 +14,11 @@ build/
 .env.test.local
 .env.production.local
 
+# Permitir archivos de configuración base (no tienen secretos)
+!.env.production
+!.env.development
+!.env.example
+
 # Logs
 *.log
 logs/
@@ -62,9 +67,6 @@ Thumbs.db
 
 # Vite
 .vite/
-
-# Netlify (legacy)
-netlify/
 
 # Archives
 *.zip
