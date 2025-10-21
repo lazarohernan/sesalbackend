@@ -2,15 +2,34 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "http://18.191.147.182:4000/api/$1"
+      "destination": "http://3.148.24.255/api/$1"
     },
     {
       "source": "/salud",
-      "destination": "http://18.191.147.182:4000/salud"
+      "destination": "http://3.148.24.255/salud"
     },
     {
       "source": "/(.*)",
       "destination": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, PUT, DELETE, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Content-Type"
+        }
+      ]
     }
   ]
 }
