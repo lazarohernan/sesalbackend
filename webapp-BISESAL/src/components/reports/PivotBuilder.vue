@@ -27,7 +27,7 @@
           <div
             v-for="dimension in dimensionesFiltradas"
             :key="dimension.id"
-            class="flex items-center justify-between gap-3 rounded-lg border border-blue-200 bg-white dark:border-blue-700 dark:bg-slate-800 px-3 py-2 text-sm text-primary dark:text-text-inverted shadow-sm transition hover:border-blue-400 hover:shadow-md cursor-move"
+            class="flex items-center justify-between gap-3 rounded-md border border-orange-200 bg-white dark:border-orange-700 dark:bg-slate-800 px-3 py-2 text-sm text-primary dark:text-text-inverted shadow-sm transition hover:border-orange-400 hover:shadow-md cursor-move"
             draggable="true"
             @dragstart="handleDragStart($event, 'dimension', dimension.id)"
             tabindex="0"
@@ -38,7 +38,7 @@
               <span class="font-semibold text-slate-900 dark:text-slate-100">{{ dimension.etiqueta }}</span>
             </div>
             <span
-              class="inline-flex items-center rounded-full bg-orange-500 dark:bg-orange-600 px-2.5 py-1 text-xs font-semibold capitalize text-white shadow-sm"
+              class="inline-flex items-center rounded-md bg-orange-500 dark:bg-orange-600 px-2.5 py-1 text-xs font-semibold capitalize text-white shadow-sm"
             >
               {{ dimension.tipo === 'number' ? 'Numérica' : 'Texto' }}
             </span>
@@ -52,7 +52,7 @@
           <div
             v-for="medida in medidasFiltradas"
             :key="medida.id"
-            class="flex items-center justify-between gap-3 rounded-lg border border-blue-200 bg-white dark:border-blue-700 dark:bg-slate-800 px-3 py-2 text-sm text-primary dark:text-text-inverted shadow-sm transition hover:border-blue-400 hover:shadow-md cursor-move"
+            class="flex items-center justify-between gap-3 rounded-md border border-orange-200 bg-white dark:border-orange-700 dark:bg-slate-800 px-3 py-2 text-sm text-primary dark:text-text-inverted shadow-sm transition hover:border-orange-400 hover:shadow-md cursor-move"
             draggable="true"
             @dragstart="handleDragStart($event, 'measure', medida.id)"
             tabindex="0"
@@ -63,7 +63,7 @@
               <span class="font-semibold text-slate-900 dark:text-slate-100">{{ medida.etiqueta }}</span>
             </div>
             <span
-              class="inline-flex items-center rounded-full bg-orange-500 dark:bg-orange-600 px-2.5 py-1 text-xs font-semibold capitalize text-white shadow-sm"
+              class="inline-flex items-center rounded-md bg-orange-500 dark:bg-orange-600 px-2.5 py-1 text-xs font-semibold capitalize text-white shadow-sm"
             >
               {{ formatearAgregacion(medida.agregacionPorDefecto) }}
             </span>
@@ -423,7 +423,7 @@ const handleDragStart = (event: DragEvent, tipo: "dimension" | "measure", id: st
   dragImage.style.padding = "8px 12px";
   dragImage.style.background = "#f97316";
   dragImage.style.color = "#ffffff";
-  dragImage.style.borderRadius = "8px";
+  dragImage.style.borderRadius = "6px";
   dragImage.style.fontSize = "14px";
   dragImage.style.fontWeight = "500";
   document.body.appendChild(dragImage);

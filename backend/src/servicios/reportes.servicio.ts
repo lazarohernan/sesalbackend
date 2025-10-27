@@ -67,8 +67,8 @@ export interface IndicadoresMunicipalesParams {
 
 export interface IndicadoresMunicipalesTotales {
   totalConsultas: number;
-  pediatria: number;
-  ginecologia: number;
+  enfermeraAuxiliar: number;
+  enfermeraProfesional: number;
   medicinaGeneral: number;
   medicosEspecialistas: number;
   totalUnidades: number;
@@ -96,8 +96,8 @@ export const obtenerIndicadoresMunicipales = async (
   const query = `
     SELECT
       SUM(totalConsultas) AS totalConsultas,
-      SUM(pediatria) AS pediatria,
-      SUM(ginecologia) AS ginecologia,
+      SUM(enfermeraAuxiliar) AS enfermeraAuxiliar,
+      SUM(enfermeraProfesional) AS enfermeraProfesional,
       SUM(medicinaGeneral) AS medicinaGeneral,
       SUM(medicosEspecialistas) AS medicosEspecialistas,
       COUNT(DISTINCT C_US) AS totalUnidades
@@ -105,8 +105,8 @@ export const obtenerIndicadoresMunicipales = async (
       SELECT
         det.C_US,
         COALESCE(CAST(det.Q_AT_ENFERMERA_AUX AS UNSIGNED), 0) + COALESCE(CAST(det.Q_AT_ENFERMERA_PRO AS UNSIGNED), 0) + COALESCE(CAST(det.Q_AT_MEDICO_GEN AS UNSIGNED), 0) + COALESCE(CAST(det.Q_AT_MEDICO_ESP AS UNSIGNED), 0) AS totalConsultas,
-        COALESCE(CAST(det.Q_AT_ENFERMERA_AUX AS UNSIGNED), 0) AS pediatria,
-        COALESCE(CAST(det.Q_AT_ENFERMERA_PRO AS UNSIGNED), 0) AS ginecologia,
+        COALESCE(CAST(det.Q_AT_ENFERMERA_AUX AS UNSIGNED), 0) AS enfermeraAuxiliar,
+        COALESCE(CAST(det.Q_AT_ENFERMERA_PRO AS UNSIGNED), 0) AS enfermeraProfesional,
         COALESCE(CAST(det.Q_AT_MEDICO_GEN AS UNSIGNED), 0) AS medicinaGeneral,
         COALESCE(CAST(det.Q_AT_MEDICO_ESP AS UNSIGNED), 0) AS medicosEspecialistas
       FROM ${tablaDetalle} det
@@ -122,8 +122,8 @@ export const obtenerIndicadoresMunicipales = async (
 
   const resultado = {
     totalConsultas: Number(fila.totalConsultas ?? 0),
-    pediatria: Number(fila.pediatria ?? 0),
-    ginecologia: Number(fila.ginecologia ?? 0),
+    enfermeraAuxiliar: Number(fila.enfermeraAuxiliar ?? 0),
+    enfermeraProfesional: Number(fila.enfermeraProfesional ?? 0),
     medicinaGeneral: Number(fila.medicinaGeneral ?? 0),
     medicosEspecialistas: Number(fila.medicosEspecialistas ?? 0),
     totalUnidades: Number(fila.totalUnidades ?? 0)

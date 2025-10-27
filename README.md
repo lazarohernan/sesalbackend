@@ -114,38 +114,6 @@ npm run build
 # Para producción, subir el contenido de dist/ a un servidor web
 ```
 
-## 🚀 Despliegue en Netlify
-
-### Opción 1: Despliegue Automático (Recomendado)
-1. **Conectar repositorio**: Ve a [Netlify](https://app.netlify.com) y conecta tu repo de GitHub
-2. **Configuración de build**:
-   - **Branch**: `main`
-   - **Build command**: `npm run build`
-   - **Publish directory**: `webapp-BISESAL/dist`
-3. **Variables de entorno** (opcional):
-   - `VITE_API_URL`: URL de tu backend en producción
-
-### Opción 2: Despliegue Manual
-```bash
-# Desde la carpeta del frontend
-cd webapp-BISESAL
-
-# Build del proyecto
-npm run build
-
-# Desplegar en Netlify (requiere Netlify CLI)
-npm install -g netlify-cli
-netlify login
-netlify deploy --prod --dir=dist
-```
-
-### Configuración de Netlify
-El archivo `netlify.toml` ya está configurado con:
-- ✅ Redirecciones SPA automáticas
-- ✅ Headers de cache optimizados
-- ✅ Headers de seguridad
-- ✅ Configuración de build automática
-
 ## 🚀 Despliegue del Backend
 
 ### Opción 1: Railway (Recomendado)
@@ -305,13 +273,7 @@ sudo nginx -t
 sudo systemctl reload nginx
 ```
 
-#### 6. Configurar Variables de Entorno en Netlify
-```bash
-# En Netlify Site Settings > Environment variables
-VITE_API_URL=http://3.137.212.24:4000
-```
-
-#### 7. Configurar Seguridad
+#### 6. Configurar Seguridad
 ```bash
 # Configurar firewall
 sudo ufw allow OpenSSH

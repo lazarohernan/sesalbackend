@@ -1,0 +1,147 @@
+═══════════════════════════════════════════════════════════════════
+🔒 COMANDOS PARA CONFIGURAR HTTPS EN LIGHTSAIL
+═══════════════════════════════════════════════════════════════════
+
+Ya estás conectado al servidor, ejecuta estos comandos en orden:
+
+-------------------------------------------------------------------
+PASO 1: INSTALAR NGINX Y CERTBOT
+-------------------------------------------------------------------
+
+sudo apt update
+sudo apt install -y nginx certbot python3-certbot-nginx
+
+-------------------------------------------------------------------
+PASO 2: CONFIGURAR NGINX COMO PROXY REVERSO
+-------------------------------------------------------------------
+
+sudo tee /etc/nginx/sites-available/sesal-backend > /dev/null << 'NGINX_CONFIG'
+server {
+    listen 80;
+    server_name 18.226.96.204;
+
+    location / {
+        proxy_pass http://localhost:4000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+    }
+}
+NGINX_CONFIG
+
+-------------------------------------------------------------------
+PASO 3: HABILITAR LA CONFIGURACIÓN
+-------------------------------------------------------------------
+
+sudo ln -sf /etc/nginx/sites-available/sesal-backend /etc/nginx/sites-enabled/
+sudo rm -f /etc/nginx/sites-enabled/default
+sudo nginx -t
+sudo systemctl restart nginx
+
+-------------------------------------------------------------------
+PASO 4: VERIFICAR QUE NGINX FUNCIONA
+-------------------------------------------------------------------
+
+curl http://localhost/salud
+
+-------------------------------------------------------------------
+PASO 5: CREAR CERTIFICADO SSL AUTOFIRMADO (Temporal)
+-------------------------------------------------------------------
+
+sudo mkdir -p /etc/nginx/ssl
+sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+  -keyout /etc/nginx/ssl/nginx-selfsigned.key \
+  -out /etc/nginx/ssl/nginx-selfsigned.crt \
+  -subj "/C=HN/ST=FranciscoMorazan/L=Tegucigalpa/O=SESAL/CN=18.226.96.204"
+
+-------------------------------------------------------------------
+PASO 6: ACTUALIZAR CONFIGURACIÓN DE NGINX PARA HTTPS
+-------------------------------------------------------------------
+
+sudo tee /etc/nginx/sites-available/sesal-backend > /dev/null << 'NGINX_SSL'
+server {
+    listen 80;
+    server_name 18.226.96.204;
+    return 301 https://$server_name$request_uri;
+}
+
+server {
+    listen 443 ssl;
+    server_name 18.226.96.204;
+
+    ssl_certificate /etc/nginx/ssl/nginx-selfsigned.crt;
+    ssl_certificate_key /etc/nginx/ssl/nginx-selfsigned.key;
+    
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+    ssl_prefer_server_ciphers on;
+
+    location / {
+        proxy_pass http://localhost:4000;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        proxy_cache_bypass $http_upgrade;
+    }
+}
+NGINX_SSL
+
+-------------------------------------------------------------------
+PASO 7: REINICIAR NGINX
+-------------------------------------------------------------------
+
+sudo nginx -t
+sudo systemctl restart nginx
+
+-------------------------------------------------------------------
+PASO 8: VERIFICAR QUE HTTPS FUNCIONA
+-------------------------------------------------------------------
+
+curl -k https://localhost/salud
+
+-------------------------------------------------------------------
+PASO 9: CONFIGURAR FIREWALL
+-------------------------------------------------------------------
+
+sudo ufw allow 443/tcp
+sudo ufw status
+
+═══════════════════════════════════════════════════════════════════
+⚠️ IMPORTANTE: CERTIFICADO AUTOFIRMADO
+═══════════════════════════════════════════════════════════════════
+
+El certificado autofirmado funcionará PERO:
+• Los navegadores mostrarán advertencia de seguridad
+• No es recomendado para producción
+• Es solo una solución temporal
+
+Para producción, necesitas:
+1. Un dominio (ej: api.sesal.hn)
+2. Usar Let's Encrypt (gratuito)
+
+═══════════════════════════════════════════════════════════════════
+📋 SIGUIENTE PASO: ACTUALIZAR NETLIFY
+═══════════════════════════════════════════════════════════════════
+
+Ve a Netlify:
+Site Settings > Environment Variables
+
+Cambia:
+VITE_API_URL=https://18.226.96.204
+
+Luego:
+Deploys > Trigger Deploy > Clear cache and deploy
+
+⚠️ Nota: El navegador mostrará advertencia de certificado no confiable
+Los usuarios deberán aceptar el riesgo para continuar
+
+═══════════════════════════════════════════════════════════════════

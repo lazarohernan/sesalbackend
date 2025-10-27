@@ -32,18 +32,11 @@ app.get("/salud", (_req, res) => {
   res.json({ estado: "ok", servicio: "bi-backend", ambiente: entorno.ambiente });
 });
 
-// Servir archivos estáticos del frontend
-app.use(express.static(path.join(__dirname, '..', 'public')));
-
+// Rutas API
 app.use("/api", rutas);
 
-// SPA: enviar index.html para rutas que no sean API
-app.get('/:path*', (req, res) => {
-  if (req.path.startsWith('/api')) {
-    return res.status(404).json({ mensaje: 'Ruta no encontrada' });
-  }
-  res.sendFile(path.join(__dirname, '..', 'public', 'index.html'));
-});
+// Servir archivos estáticos del frontend
+app.use(express.static(path.join(__dirname, '..', 'public')));
 
 app.use(notFoundHandler);
 app.use(errorHandler);

@@ -179,7 +179,7 @@ Concepto Ordenado
 52 Atencion puerperal nueva en los primeros 10 dias
 53 Otras Actividades Planificación Familiar
 
-Establecimiento
+Establecimiento de Salud
 
 10006 EL OCOTAL
 10014 PORTILLO DE LA PEÑA
@@ -1984,7 +1984,7 @@ Prenatales
 Total de Niños Menores de 5 Años Atendidos
 Total Pacientes Atendidos
 
-Nivel Establecimiento 
+Nivel Establecimiento de Salud 
 
 1 Hospital Básico
 10 Policlinico

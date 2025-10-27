@@ -9,7 +9,7 @@
       type="button"
       :id="idInterno"
       @click="abierto = !abierto"
-      class="flex w-full items-center justify-between gap-2 rounded-lg border border-slate-300 bg-white dark:border-slate-600 dark:bg-slate-700 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm transition-colors hover:bg-slate-50 dark:hover:bg-slate-600 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+      class="flex w-full items-center justify-between gap-2 rounded-lg border border-slate-300 bg-white dark:border-slate-600 dark:bg-slate-700 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 shadow-sm transition-colors hover:bg-slate-50 dark:hover:bg-slate-600 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500"
     >
       <span class="truncate">
         {{ seleccionados.length ? `${seleccionados.length} seleccionado${seleccionados.length > 1 ? 's' : ''}` : 'Seleccionar...' }}
@@ -55,7 +55,7 @@
           :key="String(opcion.valor)"
           type="button"
           class="flex w-full items-center justify-between px-3 py-2 text-left text-sm transition hover:bg-slate-100 dark:hover:bg-slate-700"
-          :class="seleccionadosSet.has(String(opcion.valor)) ? 'bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400' : 'text-slate-700 dark:text-slate-300'"
+          :class="seleccionadosSet.has(String(opcion.valor)) ? 'bg-orange-50 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400' : 'text-slate-700 dark:text-slate-300'"
           @click="toggle(opcion.valor)"
         >
           <span class="truncate">{{ opcion.etiqueta }}</span>
@@ -80,7 +80,7 @@
         <button
           type="button"
           @click="abierto = false"
-          class="flex-1 rounded-md bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 transition-colors"
+          class="flex-1 rounded-md bg-orange-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-orange-700 transition-colors"
         >
           Aplicar
         </button>

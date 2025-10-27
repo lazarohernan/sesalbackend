@@ -176,16 +176,16 @@ const DIMENSIONES: Record<string, DimensionDefinition> = {
     label: "Concepto Ordenado",
     alias: "concepto_ordenado",
     type: "string",
-    select: "COALESCE(CONCAT(cat_concepto_ordenado.descripcion, ' [Ordenado]'), CONCAT(det.C_CONCEPTO, ' [Ordenado]'))",
-    groupBy: "COALESCE(CONCAT(cat_concepto_ordenado.descripcion, ' [Ordenado]'), CONCAT(det.C_CONCEPTO, ' [Ordenado]'))",
+    select: "COALESCE(cat_concepto_ordenado.descripcion, det.C_CONCEPTO)",
+    groupBy: "cat_concepto_ordenado.codigo, cat_concepto_ordenado.descripcion, det.C_CONCEPTO",
     valueExpr: "det.C_CONCEPTO",
     joins: ["cat_concepto_ordenado"],
-    orderBy: "COALESCE(CONCAT(cat_concepto_ordenado.descripcion, ' [Ordenado]'), CONCAT(det.C_CONCEPTO, ' [Ordenado]'))",
+    orderBy: "LPAD(cat_concepto_ordenado.codigo, 2, '0')",
     catalog: {
       table: "cat_concepto_ordenado",
       valueColumn: "codigo",
-      labelColumn: "CONCAT(descripcion, ' [Ordenado]')",
-      orderBy: "CAST(REPLACE(codigo, '0', '') AS UNSIGNED), LENGTH(codigo), codigo",
+      labelColumn: "descripcion",
+      orderBy: "LPAD(codigo, 2, '0')",
       preload: false,
       defaultLimit: 100
     }
@@ -203,7 +203,7 @@ const DIMENSIONES: Record<string, DimensionDefinition> = {
   },
   ESTABLECIMIENTO: {
     id: "ESTABLECIMIENTO",
-    label: "Establecimiento",
+    label: "Establecimiento de Salud",
     alias: "establecimiento",
     type: "string",
     select: "COALESCE(cat_establecimiento.nombre, det.C_US)",
@@ -238,9 +238,28 @@ const DIMENSIONES: Record<string, DimensionDefinition> = {
       preload: true
     }
   },
+  MUNICIPIO: {
+    id: "MUNICIPIO",
+    label: "Municipio",
+    alias: "municipio",
+    type: "string",
+    select: "COALESCE(municipios.D_MUNICIPIO, CONCAT(us.C_DEPARTAMENTO, '-', us.C_MUNICIPIO))",
+    groupBy: "COALESCE(municipios.D_MUNICIPIO, CONCAT(us.C_DEPARTAMENTO, '-', us.C_MUNICIPIO))",
+    valueExpr: "CONCAT(us.C_DEPARTAMENTO, '-', us.C_MUNICIPIO)",
+    joins: ["us", "municipios"],
+    orderBy: "COALESCE(municipios.D_MUNICIPIO, CONCAT(us.C_DEPARTAMENTO, '-', us.C_MUNICIPIO))",
+    catalog: {
+      table: "BAS_BDR_MUNICIPIOS",
+      valueColumn: "CONCAT(C_DEPARTAMENTO, '-', C_MUNICIPIO)",
+      labelColumn: "D_MUNICIPIO",
+      orderBy: "C_DEPARTAMENTO, C_MUNICIPIO",
+      preload: false,
+      defaultLimit: 100
+    }
+  },
   NIVEL_ESTABLECIMIENTO: {
     id: "NIVEL_ESTABLECIMIENTO",
-    label: "Nivel de Establecimiento",
+    label: "Nivel de Establecimiento de Salud",
     alias: "nivel_establecimiento",
     type: "string",
     select: "cat_nivel_establecimiento.descripcion",
@@ -616,6 +635,7 @@ const construirSelectDimensiones = (ids: string[]) => {
     .map((dimension) => dimension.orderBy)
     .filter((valor): valor is string => typeof valor === "string");
 
+
   return { selects, groupBy, joins: new Set<JoinKey>(joins), orderBy, definiciones };
 };
 
@@ -745,10 +765,24 @@ const transformarDatosPivot = (
     });
   });
 
-  // Convertir mapa a array de filas
-  const filas = Array.from(mapaPivot.values()).map(fila => 
-    cabeceras.map(cabecera => fila[cabecera] ?? null)
-  );
+  // Convertir mapa a array de filas preservando el orden original de los datos
+  // Extraer el orden de las claves según aparecen en los datos originales
+  const ordenClaves: string[] = [];
+  const clavesVistas = new Set<string>();
+  
+  datos.forEach(fila => {
+    const claveFila = dimensionesFilas.map(dim => String(fila[dim] ?? '')).join('|');
+    if (!clavesVistas.has(claveFila)) {
+      ordenClaves.push(claveFila);
+      clavesVistas.add(claveFila);
+    }
+  });
+  
+  // Construir filas en el orden original
+  const filas = ordenClaves.map(clave => {
+    const fila = mapaPivot.get(clave)!;
+    return cabeceras.map(cabecera => fila[cabecera] ?? null);
+  });
 
   // Calcular totales por columna
   const totales = cabeceras.map((cabecera, index) => {

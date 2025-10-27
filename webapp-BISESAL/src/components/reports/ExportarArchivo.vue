@@ -48,7 +48,7 @@
 
             <!-- Descripción -->
             <p class="mb-6 text-sm text-slate-600 dark:text-slate-400">
-              Selecciona el formato en el que deseas exportar los datos de la tabla dinámica.
+              Selecciona el formato en el que deseas exportar los datos de los reportes.
             </p>
 
             <!-- Opciones de exportación -->

@@ -192,6 +192,12 @@ const determinarDimensionAgrupacion = (): string => {
     filtros.map(f => f.field)
   )
   
+  // Si hay conceptos seleccionados, SIEMPRE agrupar por CONCEPTO_ORDENADO
+  // para mostrar solo los conceptos filtrados
+  if (conceptosSeleccionados.value.length > 0) {
+    return 'CONCEPTO_ORDENADO'
+  }
+  
   // Prioridad de dimensiones para agrupar (en orden de preferencia)
   const prioridad = ['CONCEPTO_ORDENADO', 'REGION', 'ANIO', 'MES']
   
@@ -234,7 +240,7 @@ const datosGrafico = computed(() => {
   // Determinar qué campo usar como etiqueta basándose en las dimensiones de filas
   const dimensionAgrupacion = resultado.value.metadata?.dimensionesFilas?.[0] || 'CONCEPTO_ORDENADO'
   
-  return resultado.value.datos.map(dato => {
+  const datos = resultado.value.datos.map(dato => {
     // Obtener la etiqueta según la dimensión de agrupación
     let etiqueta = 'Sin categoría'
     if (dato[dimensionAgrupacion]) {
@@ -256,7 +262,15 @@ const datosGrafico = computed(() => {
       valor: Number(dato['Total de Atenciones'] || 0),
       dimension: dimensionAgrupacion // Agregar la dimensión para referencia
     }
-  }).sort((a, b) => b.valor - a.valor) // Ordenar de mayor a menor
+  })
+  
+  // Solo ordenar por valor si NO es CONCEPTO_ORDENADO
+  // Para conceptos ordenados, respetar el orden de la base de datos
+  if (dimensionAgrupacion !== 'CONCEPTO_ORDENADO') {
+    return datos.sort((a, b) => b.valor - a.valor) // Ordenar de mayor a menor
+  }
+  
+  return datos // Mantener orden original de la BD para conceptos ordenados
 })
 
 // Generar título dinámico según la dimensión de agrupación
@@ -273,8 +287,8 @@ const tituloDinamico = computed(() => {
     'REGION': 'Regiones',
     'ANIO': 'Años',
     'MES': 'Meses',
-    'ESTABLECIMIENTO': 'Establecimientos',
-    'NIVEL_ESTABLECIMIENTO': 'Niveles de Establecimiento',
+    'ESTABLECIMIENTO': 'Establecimientos de Salud',
+    'NIVEL_ESTABLECIMIENTO': 'Niveles de Establecimiento de Salud',
     'FORMULARIO': 'Formularios'
   }
   

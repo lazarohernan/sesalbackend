@@ -19,8 +19,8 @@ import type { DepartamentoMapa } from '../../types/tablero'
 
 interface TotalesDepartamento {
   totalConsultas: number;
-  pediatria: number;
-  ginecologia: number;
+  enfermeraAuxiliar: number;
+  enfermeraProfesional: number;
   medicinaGeneral: number;
   medicosEspecialistas: number;
   totalUnidades: number;
@@ -38,8 +38,8 @@ type GeoJSONCollection = FeatureCollection<Geometry, Record<string, unknown>>
 const totalesDepartamento = computed<TotalesDepartamento>(() => {
   return datosMunicipales.value ?? {
     totalConsultas: 0,
-    pediatria: 0,
-    ginecologia: 0,
+    enfermeraAuxiliar: 0,
+    enfermeraProfesional: 0,
     medicinaGeneral: 0,
     medicosEspecialistas: 0,
     totalUnidades: 0
@@ -64,6 +64,33 @@ const departamentoIdSeleccionado = ref<number | null>(null)
 let mapa: maplibregl.Map | null = null
 const esModoOscuro = ref<boolean>(false)
 let observer: MutationObserver | null = null
+
+// Estado original del mapa capturado cuando se carga por primera vez
+let estadoOriginalMapa: { center: [number, number]; zoom: number; pitch: number; bearing: number } | null = null
+
+// Función para volver a la vista general de Honduras
+const volverVistaGeneral = () => {
+  if (mapa && estadoOriginalMapa) {
+    // Usar easeTo para una transición suave y controlada
+    // Resetear padding a 0 para volver a la vista original sin desplazamientos
+    mapa.easeTo({
+      center: estadoOriginalMapa.center,
+      zoom: estadoOriginalMapa.zoom,
+      pitch: 0, // Siempre resetear a vista plana
+      bearing: 0, // Siempre resetear a norte arriba
+      padding: { top: 0, bottom: 0, left: 0, right: 0 }, // Sin padding
+      duration: 1500, // Animación suave de 1.5 segundos
+      essential: true
+    })
+
+    // Limpiar selección de departamento
+    departamentoSeleccionado.value = null
+    departamentoIdSeleccionado.value = null
+    datosMunicipales.value = null
+    actualizarColores()
+    actualizarEtiquetas()
+  }
+}
 
 const totalesDepartamentosMapa = computed(() => {
   const resultado = new Map<number, DepartamentoMapa>()
@@ -230,7 +257,6 @@ const isoToDepartamentoId: Record<string, number> = {
 
 const colorFondoMapa = computed(() => (esModoOscuro.value ? '#0d1b32' : '#f4f8ff'))
 
-
 const crearExpresionColor = (): ExpressionSpecification => [
   'case',
   // Si está seleccionado, azul cielo fuerte
@@ -244,6 +270,16 @@ const actualizarColores = () => {
   if (!mapa) return
   const expresion = crearExpresionColor()
   mapa.setPaintProperty('departamentos-fill', 'fill-color', expresion)
+}
+
+const actualizarEtiquetas = () => {
+  if (!mapa) return
+  // Mostrar solo la etiqueta del departamento seleccionado
+  const filtro: any = departamentoIdSeleccionado.value !== null
+    ? ['==', ['get', 'departamentoId'], departamentoIdSeleccionado.value]
+    : ['==', ['get', 'departamentoId'], -1] // -1 para no mostrar ninguna etiqueta
+  
+  mapa.setFilter('departamentos-etiquetas', filtro)
 }
 
 const actualizarFondoMapa = () => {
@@ -267,6 +303,99 @@ const construirGeojsonConTotales = (): GeoJSONCollection | null => {
       } as GeoJSONFeature
     })
   }
+}
+
+// Función para calcular el centroide geométrico real de un polígono
+// Usa el algoritmo basado en el área para obtener el centro verdadero
+const calcularCentroide = (coordinates: number[][]): [number, number] => {
+  if (!coordinates || coordinates.length < 3) return [-86.25, 14.6]
+  
+  let area = 0
+  let centroidX = 0
+  let centroidY = 0
+  
+  // Algoritmo para calcular el centroide de un polígono
+  for (let i = 0; i < coordinates.length - 1; i++) {
+    const x0 = coordinates[i]?.[0] ?? 0
+    const y0 = coordinates[i]?.[1] ?? 0
+    const x1 = coordinates[i + 1]?.[0] ?? 0
+    const y1 = coordinates[i + 1]?.[1] ?? 0
+    
+    const crossProduct = x0 * y1 - x1 * y0
+    area += crossProduct
+    centroidX += (x0 + x1) * crossProduct
+    centroidY += (y0 + y1) * crossProduct
+  }
+  
+  area = area / 2
+  
+  if (Math.abs(area) < 0.0001) {
+    // Si el área es cero, usar promedio simple
+    let sumX = 0
+    let sumY = 0
+    coordinates.forEach(coord => {
+      sumX += coord?.[0] ?? 0
+      sumY += coord?.[1] ?? 0
+    })
+    return [sumX / coordinates.length, sumY / coordinates.length]
+  }
+  
+  centroidX = centroidX / (6 * area)
+  centroidY = centroidY / (6 * area)
+  
+  return [centroidX, centroidY]
+}
+
+// Crear GeoJSON de puntos centrales para cada departamento
+const construirCentroidesDepartamentos = (): GeoJSONCollection | null => {
+  if (!geojsonBase.value) return null
+  
+  const features = geojsonBase.value.features.map((feature) => {
+    const propiedades = feature.properties ?? {}
+    let centroide: [number, number] = [-86.25, 14.6]
+    
+    if (feature.geometry) {
+      if (feature.geometry.type === 'Polygon') {
+        // Para Polygon simple, usar el primer anillo (exterior)
+        const coordinates = feature.geometry.coordinates[0] as number[][]
+        centroide = calcularCentroide(coordinates)
+      } else if (feature.geometry.type === 'MultiPolygon') {
+        // Para MultiPolygon (como Islas de la Bahía), calcular centroide del polígono más grande
+        const polygons = feature.geometry.coordinates as number[][][][]
+        let largestPolygon: number[][] = []
+        let maxPoints = 0
+        
+        polygons.forEach(polygon => {
+          const ring = polygon[0] // Primer anillo de cada polígono
+          if (ring && ring.length > maxPoints) {
+            largestPolygon = ring as number[][]
+            maxPoints = ring.length
+          }
+        })
+        
+        if (largestPolygon.length > 0) {
+          centroide = calcularCentroide(largestPolygon)
+        }
+      }
+    }
+    
+    return {
+      type: 'Feature',
+      geometry: {
+        type: 'Point',
+        coordinates: centroide
+      },
+      properties: propiedades
+    }
+  })
+  
+  console.log(`Centroides calculados para ${features.length} departamentos:`, 
+    features.map(f => f.properties?.shapeName || 'Sin nombre'))
+  
+  return {
+    type: 'FeatureCollection',
+    features
+  } as GeoJSONCollection
 }
 
 const actualizarFuenteGeografica = () => {
@@ -293,8 +422,8 @@ const cargarDatosDepartamento = async (departamentoId: number) => {
 
     datosMunicipales.value = {
       totalConsultas: Number(totales.totalConsultas ?? 0),
-      pediatria: Number(totales.pediatria ?? 0),
-      ginecologia: Number(totales.ginecologia ?? 0),
+      enfermeraAuxiliar: Number(totales.enfermeraAuxiliar ?? 0),
+      enfermeraProfesional: Number(totales.enfermeraProfesional ?? 0),
       medicinaGeneral: Number(totales.medicinaGeneral ?? 0),
       medicosEspecialistas: Number(totales.medicosEspecialistas ?? 0),
       totalUnidades: Number(totales.totalUnidades ?? 0)
@@ -392,6 +521,10 @@ const construirMapa = async () => {
         honduras: {
           type: 'geojson',
           data: construirGeojsonConTotales() ?? procesado
+        },
+        'departamentos-centroides': {
+          type: 'geojson',
+          data: construirCentroidesDepartamentos() ?? { type: 'FeatureCollection', features: [] }
         }
       },
       layers: [
@@ -453,6 +586,35 @@ const construirMapa = async () => {
             'line-color': '#94a3b8',
             'line-width': 1.5
           }
+        },
+        {
+          id: 'departamentos-puntos',
+          type: 'circle',
+          source: 'departamentos-centroides',
+          paint: {
+            'circle-radius': 6,
+            'circle-color': '#f97316',
+            'circle-stroke-width': 2,
+            'circle-stroke-color': '#ffffff'
+          }
+        },
+        {
+          id: 'departamentos-etiquetas',
+          type: 'symbol',
+          source: 'departamentos-centroides',
+          filter: ['==', ['get', 'departamentoId'], -1], // Inicialmente no mostrar ninguna etiqueta
+          layout: {
+            'text-field': ['get', 'shapeName'],
+            'text-font': ['Open Sans Regular', 'Arial Unicode MS Regular'],
+            'text-size': 14,
+            'text-offset': [0, 1.5],
+            'text-anchor': 'top'
+          },
+          paint: {
+            'text-color': '#1f2937',
+            'text-halo-color': '#ffffff',
+            'text-halo-width': 2
+          }
         }
       ]
     }
@@ -460,14 +622,10 @@ const construirMapa = async () => {
     const opciones: MapOptions = {
       container: mapaContainer.value as HTMLDivElement,
       style: estilo,
-      bounds: [
-        [-89.4, 12.8],  // Honduras centrado
-        [-83.0, 16.6]
-      ],
-      fitBoundsOptions: {
-        padding: 40,
-        linear: true
-      }
+      center: [-86.25, 14.8], // Centro ajustado para incluir Islas de la Bahía
+      zoom: 6.2, // Zoom inicial
+      pitch: 0, // Vista plana (sin inclinación)
+      bearing: 0 // Norte arriba (sin rotación)
     }
 
     const mapInstance = new maplibregl.Map(opciones)
@@ -489,6 +647,20 @@ const construirMapa = async () => {
       actualizarColores()
       actualizarFondoMapa()
       actualizarFuenteGeografica()
+    })
+
+    // Capturar el estado original cuando el mapa esté completamente estable
+    // El evento 'idle' se dispara cuando el mapa termina de renderizar y todas las animaciones finalizan
+    mapInstance.once('idle', () => {
+      if (!estadoOriginalMapa && mapInstance) {
+        estadoOriginalMapa = {
+          center: mapInstance.getCenter().toArray() as [number, number],
+          zoom: mapInstance.getZoom(),
+          pitch: mapInstance.getPitch(),
+          bearing: mapInstance.getBearing()
+        }
+        console.log('Estado original capturado:', estadoOriginalMapa)
+      }
     })
 
     // Efecto hover - cambiar cursor
@@ -545,13 +717,44 @@ const construirMapa = async () => {
       const departamentoId = propiedades.departamentoId ?? 0
 
       if (departamentoId) {
-        departamentoIdSeleccionado.value = departamentoId
+        departamentoIdSeleccionado.value = departamentoId as number
         departamentoSeleccionado.value = {
           id: departamentoId,
           nombre: propiedades.shapeName ?? 'Sin nombre'
         }
+
+        // Animación de zoom al departamento seleccionado
+        if (feature.geometry && feature.geometry.type === 'Polygon') {
+          // Calcular el centro del polígono del departamento
+          const coordinates = feature.geometry.coordinates[0] as [number, number][]
+          let totalLng = 0
+          let totalLat = 0
+
+          coordinates.forEach(coord => {
+            totalLng += coord[0]
+            totalLat += coord[1]
+          })
+
+          const centerLng = totalLng / coordinates.length
+          const centerLat = totalLat / coordinates.length
+
+          // Animar zoom al centro del departamento usando easeTo
+          // Padding ajustado para centrar el departamento en el espacio visible (lado izquierdo)
+          // dejando espacio a la derecha para el panel de información
+          mapInstance.easeTo({
+            center: [centerLng, centerLat],
+            zoom: 7.5, // Nivel de zoom para ver el departamento
+            pitch: 0, // Mantener vista plana
+            bearing: 0, // Mantener norte arriba
+            padding: { top: 50, bottom: 50, left: 50, right: 350 }, // Más padding a la derecha para el panel
+            duration: 1500, // Duración de la animación en ms
+            essential: true // La animación no se puede cancelar
+          })
+        }
+
         await cargarDatosDepartamento(departamentoId)
         actualizarColores()
+        actualizarEtiquetas()
       }
     })
   } catch (err) {
@@ -658,8 +861,8 @@ watch(() => props.anio, async () => {
         </div>
 
         <div class="space-y-1 text-xs">
-          <div>• Pediatría: {{ totalesDepartamento.pediatria.toLocaleString('es-HN') }}</div>
-          <div>• Ginecología: {{ totalesDepartamento.ginecologia.toLocaleString('es-HN') }}</div>
+          <div>• Enfermera Auxiliar: {{ totalesDepartamento.enfermeraAuxiliar.toLocaleString('es-HN') }}</div>
+          <div>• Enfermera Profesional: {{ totalesDepartamento.enfermeraProfesional.toLocaleString('es-HN') }}</div>
           <div>• Med. General: {{ totalesDepartamento.medicinaGeneral.toLocaleString('es-HN') }}</div>
           <div>• Centros salud: {{ totalesDepartamento.totalUnidades }}</div>
         </div>
@@ -681,6 +884,21 @@ watch(() => props.anio, async () => {
         ]"
       >
         {{ item.etiqueta }}
+      </button>
+    </div>
+
+    <!-- Controles inferiores -->
+    <div class="absolute bottom-4 left-4 right-4 flex justify-center">
+      <button
+        @click="volverVistaGeneral"
+        :disabled="!departamentoSeleccionado"
+        class="flex items-center gap-2 rounded-full bg-white/90 px-4 py-2 text-sm font-medium text-gray-700 shadow-md transition-all hover:bg-gray-100 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed dark:bg-surface-dark/90 dark:text-gray-300 dark:hover:bg-gray-700"
+        title="Volver a vista general de Honduras"
+      >
+        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+        </svg>
+        <span class="hidden sm:inline">Vista general</span>
       </button>
     </div>
   </div>

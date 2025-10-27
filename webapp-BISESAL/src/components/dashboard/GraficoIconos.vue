@@ -63,7 +63,7 @@ const obtenerIcono = (etiqueta: string, dimension?: string) => {
   
   // Iconos para ESTABLECIMIENTO
   if (dimension === 'ESTABLECIMIENTO') {
-    return Building2 // Edificio para establecimientos
+    return Building2 // Edificio para establecimientos de salud
   }
   
   // Iconos para CONCEPTO y CONCEPTO_ORDENADO (lógica original basada en contenido)

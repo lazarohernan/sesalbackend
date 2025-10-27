@@ -101,9 +101,9 @@ const tarjetas = ref<TarjetaResumen[]>([
   },
   {
     id: 'unidades',
-    titulo: 'Unidades de servicio',
+    titulo: 'Establecimientos de salud',
     valor: '--',
-    descripcion: 'US registradas en catálogo institucional'
+    descripcion: 'Establecimientos registrados en catálogo institucional'
   },
   {
     id: 'detalle',
@@ -130,7 +130,7 @@ const tabs = [
   { id: 'inicio', label: 'Inicio' },
   { id: 'dashboard', label: 'Dashboard' },
   { id: 'indicadores', label: 'Indicadores' },
-  { id: 'reportes', label: 'Tabla Dinámica' }
+  { id: 'reportes', label: 'Reportes' }
 ]
 
 const MapaHonduras = defineAsyncComponent(() =>
@@ -148,11 +148,11 @@ const actualizarTarjetas = (datos: ResumenTablero) => {
   const anioMostrar = anioSeleccionado.value || anioMapa.value
   const descripcionDetalle = anioMostrar && anioMostrar !== 2025
     ? `Total de filas analíticas para ${anioMostrar}`
-    : 'Total de filas analíticas acumuladas (2008-2025)'
+    : 'Total de analíticas'
   
   const descripcionUnidades = anioMostrar && anioMostrar !== 2025
     ? `US con registros en ${anioMostrar}`
-    : 'US registradas en catálogo institucional'
+    : 'Establecimientos registrados'
 
   tarjetas.value = [
     {
@@ -169,7 +169,7 @@ const actualizarTarjetas = (datos: ResumenTablero) => {
     },
     {
       id: 'unidades',
-      titulo: 'Unidades de servicio',
+      titulo: 'Establecimientos de salud',
       valor: formatearNumero(datos.totalUnidadesServicio),
       descripcion: descripcionUnidades
     },
@@ -284,7 +284,7 @@ onBeforeUnmount(() => {
     <!-- Banner de configuración requerida - DESHABILITADO -->
     <!-- <ConfiguracionRequired v-if="!hasConfig" /> -->
     
-    <!-- Modo embedded completo: dashboard + tabla dinámica -->
+    <!-- Modo embedded completo: dashboard + reportes -->
     <div
       v-if="widgetConfig?.isEmbedded"
       class="bi-sesal-widget"
@@ -331,7 +331,7 @@ onBeforeUnmount(() => {
     <section class="map-section">
       <header class="section-header">
         <h2 class="section-title">Mapa de actividad por departamento</h2>
-        <p class="section-subtitle">Volumen histórico de atenciones y unidades de servicio (2008-2025)</p>
+        <p class="section-subtitle">Volumen histórico de atenciones y establecimientos de salud (2008-2025)</p>
       </header>
 
       <Suspense>
@@ -350,7 +350,7 @@ onBeforeUnmount(() => {
     </section>
 
 
-      <!-- Tabla dinámica en embed -->
+      <!-- Reportes en embed -->
       <section class="pivot-builder-embed">
         <PivotBuilder />
       </section>
@@ -430,7 +430,7 @@ onBeforeUnmount(() => {
                 </p>
               </div>
 
-              <!-- Tabla Dinámica -->
+              <!-- Reportes -->
               <div class="group flex flex-col items-center text-center p-6 rounded-xl border border-border bg-surface hover:bg-surface-hover transition-all duration-300 dark:border-border-dark dark:bg-surface-dark dark:hover:bg-surface-dark-hover">
                 <div class="w-16 h-16 bg-brand-light dark:bg-brand-dark/30 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
                   <svg class="w-8 h-8 text-brand-base dark:text-brand-base" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -438,7 +438,7 @@ onBeforeUnmount(() => {
                   </svg>
                 </div>
                 <h3 class="text-xl font-semibold text-primary dark:text-text-inverted mb-2">
-                  Tabla Dinámica
+                  Reportes
                 </h3>
                 <p class="text-sm text-text-secondary dark:text-text-muted">
                   Análisis interactivo y pivot tables
@@ -522,7 +522,7 @@ onBeforeUnmount(() => {
             Mapa de actividad por departamento
           </h2>
           <p class="text-sm text-secondary transition-colors duration-300 dark:text-muted">
-            Volumen histórico de atenciones y unidades de servicio (2008-2025)
+            Volumen histórico de atenciones y establecimientos de salud (2008-2025)
           </p>
         </div>
       </header>
@@ -552,7 +552,7 @@ onBeforeUnmount(() => {
           <header class="flex flex-col gap-4 rounded-card border border-border bg-surface px-6 py-4 shadow-panel transition-colors duration-300 dark:border-border-dark dark:bg-surface-dark">
             <div class="space-y-1">
               <h2 class="text-2xl font-semibold text-primary transition-colors duration-300 dark:text-text-inverted">
-                Tabla Dinámica y Exportación
+                Reportes y Exportación
               </h2>
               <p class="text-sm text-text-secondary transition-colors duration-300 dark:text-text-muted">
                 Análisis interactivo de datos y herramientas de exportación avanzadas

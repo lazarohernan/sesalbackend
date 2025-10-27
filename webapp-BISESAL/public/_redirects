@@ -1,3 +1,0 @@
-# Configuración de redirecciones para Netlify
-# Redirigir todas las rutas del frontend al index.html para SPA
-/*    /index.html   200

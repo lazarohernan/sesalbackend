@@ -4,9 +4,9 @@
     <div v-if="cargando" class="rounded-lg border border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-800 p-6 text-center shadow-sm">
       <div class="flex flex-col items-center gap-4">
         <div class="relative h-12 w-12">
-          <div class="absolute inset-0 rounded-full border-4 border-blue-200 dark:border-blue-900/40"></div>
-          <div class="absolute inset-0 rounded-full border-4 border-blue-500 border-t-transparent animate-spin"></div>
-          <span class="absolute inset-0 flex items-center justify-center text-xs font-semibold text-blue-600 dark:text-blue-300">
+          <div class="absolute inset-0 rounded-full border-4 border-orange-200 dark:border-orange-900/40"></div>
+          <div class="absolute inset-0 rounded-full border-4 border-orange-500 border-t-transparent animate-spin"></div>
+          <span class="absolute inset-0 flex items-center justify-center text-xs font-semibold text-orange-600 dark:text-orange-300">
             {{ progresoNormalizado }}%
           </span>
         </div>
@@ -16,7 +16,7 @@
         </div>
         <div class="h-2 w-full max-w-xs overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
           <div
-            class="h-full rounded-full bg-blue-500 transition-all duration-300 ease-out"
+            class="h-full rounded-full bg-orange-500 transition-all duration-300 ease-out"
             :style="{ width: progresoNormalizado + '%' }"
           ></div>
         </div>
@@ -39,7 +39,7 @@
         <svg class="h-8 w-8 text-slate-400 dark:text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
         </svg>
-        <span>Selecciona dimensiones y métricas para visualizar la tabla dinámica.</span>
+        <span>Selecciona dimensiones y métricas para visualizar los reportes.</span>
       </div>
     </div>
 
@@ -132,7 +132,7 @@
             <select
               :value="filasPorPagina"
               @change="cambiarFilasPorPagina(Number(($event.target as HTMLSelectElement).value))"
-              class="rounded-lg border border-slate-300 bg-white dark:border-slate-600 dark:bg-slate-700 px-2 py-1 text-sm text-slate-900 dark:text-slate-100 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              class="rounded-lg border border-slate-300 bg-white dark:border-slate-600 dark:bg-slate-700 px-2 py-1 text-sm text-slate-900 dark:text-slate-100 focus:border-orange-500 focus:outline-none focus:ring-1 focus:ring-orange-500"
             >
               <option v-for="opcion in opcionesPaginacion" :key="opcion" :value="opcion">
                 {{ opcion }}
@@ -176,7 +176,7 @@
               :class="[
                 'min-w-[2.5rem] rounded-lg px-3 py-2 text-sm font-medium transition',
                 pagina === paginaActual
-                  ? 'bg-blue-500 text-white shadow'
+                  ? 'bg-orange-500 text-white shadow'
                   : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
               ]"
             >
